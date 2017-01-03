@@ -10,4 +10,13 @@ add_executable(ut-lexer
   ut_lexer.c
 )
 
+add_executable(ut-parser
+  lexer.h
+  lexer.c
+  parser.h
+  parser.c
+  ut_parser.c
+)
+
 add_test(NAME lexer COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ut-lexer)
+add_test(NAME parser COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ut-parser)

@@ -75,7 +75,7 @@ static void fail(const char* fmt, ...)
 }
 
 
-static void on_new_token(token_info ti)
+static void on_token(token_info ti)
 {
   if (itoken == itest->tokens + itest->ntokens) {
     fail("Unexpected token of type %d, value type %d", ti.type, ti.value_type);
@@ -124,15 +124,15 @@ void embedjson_error(const char* position)
   fail("Lexer error near \"%.*s\"", 4, position);
 }
 
-void embedjson_on_new_token(embedjson_lexer* lexer, embedjson_token token)
+void embedjson_token(embedjson_lexer* lexer, embedjson_tok token)
 {
-  on_new_token((token_info) {.type = token});
+  on_token((token_info) {.type = token});
 }
 
 
-void embedjson_on_new_tokenc(embedjson_lexer* lexer, const char* data, size_t size)
+void embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size)
 {
-  on_new_token((token_info) {
+  on_token((token_info) {
       .type = EMBEDJSON_TOKEN_STRING_CHUNK,
       .value_type = TOKEN_VALUE_TYPE_STR,
       .value = {
@@ -143,9 +143,9 @@ void embedjson_on_new_tokenc(embedjson_lexer* lexer, const char* data, size_t si
 }
 
 
-void embedjson_on_new_tokeni(embedjson_lexer* lexer, int64_t value)
+void embedjson_tokeni(embedjson_lexer* lexer, int64_t value)
 {
-  on_new_token((token_info) {
+  on_token((token_info) {
       .type = EMBEDJSON_TOKEN_NUMBER,
       .value_type = TOKEN_VALUE_TYPE_INTEGER,
       .value = {.integer = value}
@@ -154,9 +154,9 @@ void embedjson_on_new_tokeni(embedjson_lexer* lexer, int64_t value)
 }
 
 
-void embedjson_on_new_tokenf(embedjson_lexer* lexer, double value)
+void embedjson_tokenf(embedjson_lexer* lexer, double value)
 {
-  on_new_token((token_info) {
+  on_token((token_info) {
       .type = EMBEDJSON_TOKEN_NUMBER,
       .value_type = TOKEN_VALUE_TYPE_FP,
       .value = {.fp = value}

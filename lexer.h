@@ -2,6 +2,28 @@
 #include <stdint.h> /* for int64_t */
 #include <stddef.h> /* for size_t */
 
+/**
+ * JSON lexer. Transforms input stream of bytes into a stream
+ * of tokens defined by JSON grammar.
+ *
+ * For instance, a string {[:"foo"10 will be transformed into
+ * a series "open curly bracket", "open bracket", "colon",
+ * "string 'foo'", "integer 10".
+ *
+ * Lexer does not take into consideration meaning of the tokens,
+ * so a string "{{{{" will be successfully handled. Syntax checks
+ * are performed by a higher-level abstraction - parser.
+ *
+ * @note JSON strings are not accumulated by the lexer - only user
+ * provided buffers are used to provide string values to the caller.
+ * That's why each JSON string value is transformed into a series
+ * of EMBEDJSON_TOKEN_STRING_CHUNK tokens. A new string chunk is
+ * created each time one of the following events occurs:
+ * - a buffer provided for embedjson_lexer_push function is parsed
+ *   to the end, while lexer is in the LEXER_STATE_IN_STRING state;
+ * - ASCII escape sequence is found in the string;
+ * - Unicode escape sequence is found in the string.
+ */
 typedef struct embedjson_lexer {
   unsigned char state;
   unsigned char offset;
@@ -14,6 +36,9 @@ typedef struct embedjson_lexer {
   uint16_t exp_value;
 } embedjson_lexer;
 
+/**
+ * JSON token type
+ */
 typedef enum {
   EMBEDJSON_TOKEN_OPEN_CURLY_BRACKET,
   EMBEDJSON_TOKEN_CLOSE_CURLY_BRACKET,
@@ -26,11 +51,11 @@ typedef enum {
   EMBEDJSON_TOKEN_TRUE,
   EMBEDJSON_TOKEN_FALSE,
   EMBEDJSON_TOKEN_NULL
-} embedjson_token;
+} embedjson_tok;
 
 /**
  * Called by embedjson_push, results are returned by calling
- * either embedjson_on_new_token, or embedjson_error.
+ * either embedjson_token, or embedjson_error.
  *
  * @note If error occurs, lexer state remain unchanged
  */
@@ -58,28 +83,28 @@ void embedjson_lexer_finalize(embedjson_lexer* lexer);
  * - EMBEDJSON_TOKEN_FALSE,
  * - EMBEDJSON_TOKEN_NULL
  */
-void embedjson_on_new_token(embedjson_lexer* lexer, embedjson_token token);
+void embedjson_token(embedjson_lexer* lexer, embedjson_tok token);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
  * EMBEDJSON_TOKEN_STRING_CHUNK token. A pointer to buffer that contains
  * string chunk data and it's size are provided to the callback
  */
-void embedjson_on_new_tokenc(embedjson_lexer* lexer, const char* data, size_t size);
+void embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
  * EMBEDJSON_TOKEN_NUMBER token and it has an integer value.
  *
- * @see embedjson_on_new_tokenf
+ * @see embedjson_tokenf
  */
-void embedjson_on_new_tokeni(embedjson_lexer* lexer, int64_t value);
+void embedjson_tokeni(embedjson_lexer* lexer, int64_t value);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
  * EMBEDJSON_TOKEN_NUMBER token and it has a floating-point value.
  *
- * @see embedjson_on_new_tokeni
+ * @see embedjson_tokeni
  */
-void embedjson_on_new_tokenf(embedjson_lexer* lexer, double value);
+void embedjson_tokenf(embedjson_lexer* lexer, double value);
 

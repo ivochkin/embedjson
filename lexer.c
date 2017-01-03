@@ -2,17 +2,17 @@
 #include "common.h"
 
 
-#define EMBEDJSON_STATE_LOOKUP_TOKEN 0
-#define EMBEDJSON_STATE_IN_STRING 1
-#define EMBEDJSON_STATE_IN_STRING_ESCAPE 2
-#define EMBEDJSON_STATE_IN_STRING_UNICODE_ESCAPE 3
-#define EMBEDJSON_STATE_IN_NUMBER 4
-#define EMBEDJSON_STATE_IN_NUMBER_FRAC 5
-#define EMBEDJSON_STATE_IN_NUMBER_EXP_SIGN 6
-#define EMBEDJSON_STATE_IN_NUMBER_EXP 7
-#define EMBEDJSON_STATE_IN_TRUE 8
-#define EMBEDJSON_STATE_IN_FALSE 9
-#define EMBEDJSON_STATE_IN_NULL 10
+#define LEXER_STATE_LOOKUP_TOKEN 0
+#define LEXER_STATE_IN_STRING 1
+#define LEXER_STATE_IN_STRING_ESCAPE 2
+#define LEXER_STATE_IN_STRING_UNICODE_ESCAPE 3
+#define LEXER_STATE_IN_NUMBER 4
+#define LEXER_STATE_IN_NUMBER_FRAC 5
+#define LEXER_STATE_IN_NUMBER_EXP_SIGN 6
+#define LEXER_STATE_IN_NUMBER_EXP 7
+#define LEXER_STATE_IN_TRUE 8
+#define LEXER_STATE_IN_FALSE 9
+#define LEXER_STATE_IN_NULL 10
 
 
 /*
@@ -85,84 +85,84 @@ void embedjson_lexer_push(embedjson_lexer* lexer, const char* data, size_t size)
 {
   embedjson_lexer lex = *lexer;
   embedjson_lexer orig_lex = *lexer;
-  const char* string_chunk_begin = lex.state == EMBEDJSON_STATE_IN_STRING ? data : NULL;
+  const char* string_chunk_begin = lex.state == LEXER_STATE_IN_STRING ? data : NULL;
   for (const char* end = data + size; data != end; ++data) {
     switch(lex.state) {
-      case EMBEDJSON_STATE_LOOKUP_TOKEN:
+      case LEXER_STATE_LOOKUP_TOKEN:
         if (*data == ' ' || *data == '\n' || *data == '\r' || *data == '\t') {
           continue;
         } else if (*data == ':') {
-          embedjson_on_new_token(lexer, EMBEDJSON_TOKEN_COLON);
+          embedjson_token(lexer, EMBEDJSON_TOKEN_COLON);
         } else if (*data == ',') {
-          embedjson_on_new_token(lexer, EMBEDJSON_TOKEN_COMMA);
+          embedjson_token(lexer, EMBEDJSON_TOKEN_COMMA);
         } else if (*data == '{') {
-          embedjson_on_new_token(lexer, EMBEDJSON_TOKEN_OPEN_CURLY_BRACKET);
+          embedjson_token(lexer, EMBEDJSON_TOKEN_OPEN_CURLY_BRACKET);
         } else if (*data == '}') {
-          embedjson_on_new_token(lexer, EMBEDJSON_TOKEN_CLOSE_CURLY_BRACKET);
+          embedjson_token(lexer, EMBEDJSON_TOKEN_CLOSE_CURLY_BRACKET);
         } else if (*data == '[') {
-          embedjson_on_new_token(lexer, EMBEDJSON_TOKEN_OPEN_BRACKET);
+          embedjson_token(lexer, EMBEDJSON_TOKEN_OPEN_BRACKET);
         } else if (*data == ']') {
-          embedjson_on_new_token(lexer, EMBEDJSON_TOKEN_CLOSE_BRACKET);
+          embedjson_token(lexer, EMBEDJSON_TOKEN_CLOSE_BRACKET);
         } else if (*data == '"') {
           string_chunk_begin = data + 1;
-          lex.state = EMBEDJSON_STATE_IN_STRING;
+          lex.state = LEXER_STATE_IN_STRING;
           break;
         } else if (*data == 't') {
           lex.offset = 1;
-          lex.state = EMBEDJSON_STATE_IN_TRUE;
+          lex.state = LEXER_STATE_IN_TRUE;
         } else if (*data == 'f') {
           lex.offset = 1;
-          lex.state = EMBEDJSON_STATE_IN_FALSE;
+          lex.state = LEXER_STATE_IN_FALSE;
         } else if (*data == 'n') {
           lex.offset = 1;
-          lex.state = EMBEDJSON_STATE_IN_NULL;
+          lex.state = LEXER_STATE_IN_NULL;
         } else if (*data == '-') {
           lex.minus = 1;
-          lex.state = EMBEDJSON_STATE_IN_NUMBER;
+          lex.state = LEXER_STATE_IN_NUMBER;
         } else if ('0' <= *data && *data <= '9') {
           lex.int_value = *data - '0';
-          lex.state = EMBEDJSON_STATE_IN_NUMBER;
+          lex.state = LEXER_STATE_IN_NUMBER;
         }
         break;
-      case EMBEDJSON_STATE_IN_STRING:
+      case LEXER_STATE_IN_STRING:
         if (*data == '\\') {
           if (data != string_chunk_begin) {
-            embedjson_on_new_tokenc(lexer, string_chunk_begin, data - string_chunk_begin);
+            embedjson_tokenc(lexer, string_chunk_begin, data - string_chunk_begin);
           }
-          lex.state = EMBEDJSON_STATE_IN_STRING_ESCAPE;
+          lex.state = LEXER_STATE_IN_STRING_ESCAPE;
         } else if (*data == '"') {
           if (data != string_chunk_begin) {
-            embedjson_on_new_tokenc(lexer, string_chunk_begin, data - string_chunk_begin);
+            embedjson_tokenc(lexer, string_chunk_begin, data - string_chunk_begin);
           }
-          lex.state = EMBEDJSON_STATE_LOOKUP_TOKEN;
+          lex.state = LEXER_STATE_LOOKUP_TOKEN;
         }
         break;
-      case EMBEDJSON_STATE_IN_STRING_ESCAPE:
+      case LEXER_STATE_IN_STRING_ESCAPE:
         if (*data == '"') {
-          embedjson_on_new_tokenc(lexer, "\"", 1);
+          embedjson_tokenc(lexer, "\"", 1);
         } else if (*data == '\\') {
-          embedjson_on_new_tokenc(lexer, "\\", 1);
+          embedjson_tokenc(lexer, "\\", 1);
         } else if (*data == '/') {
-          embedjson_on_new_tokenc(lexer, "/", 1);
+          embedjson_tokenc(lexer, "/", 1);
         } else if (*data == 'b') {
-          embedjson_on_new_tokenc(lexer, "\b", 1);
+          embedjson_tokenc(lexer, "\b", 1);
         } else if (*data == 'f') {
-          embedjson_on_new_tokenc(lexer, "\f", 1);
+          embedjson_tokenc(lexer, "\f", 1);
         } else if (*data == 'n') {
-          embedjson_on_new_tokenc(lexer, "\n", 1);
+          embedjson_tokenc(lexer, "\n", 1);
         } else if (*data == 'r') {
-          embedjson_on_new_tokenc(lexer, "\r", 1);
+          embedjson_tokenc(lexer, "\r", 1);
         } else if (*data == 't') {
-          embedjson_on_new_tokenc(lexer, "\t", 1);
+          embedjson_tokenc(lexer, "\t", 1);
         } else if (*data == 'u') {
-          lex.state = EMBEDJSON_STATE_IN_STRING_UNICODE_ESCAPE;
+          lex.state = LEXER_STATE_IN_STRING_UNICODE_ESCAPE;
           lex.offset = 0;
           break;
         }
         string_chunk_begin = data + 1;
-        lex.state = EMBEDJSON_STATE_IN_STRING;
+        lex.state = LEXER_STATE_IN_STRING;
         break;
-      case EMBEDJSON_STATE_IN_STRING_UNICODE_ESCAPE: {
+      case LEXER_STATE_IN_STRING_UNICODE_ESCAPE: {
         char value;
         if ('0' <= *data && *data <= '9') {
           value = *data - '0';
@@ -180,52 +180,52 @@ void embedjson_lexer_push(embedjson_lexer* lexer, const char* data, size_t size)
           case 2: lex.unicode_cp[1] = value << 4; break;
           case 3:
             lex.unicode_cp[1] |= value;
-            embedjson_on_new_tokenc(lexer, lex.unicode_cp, 2);
+            embedjson_tokenc(lexer, lex.unicode_cp, 2);
             string_chunk_begin = data + 1;
-            lex.state = EMBEDJSON_STATE_IN_STRING;
+            lex.state = LEXER_STATE_IN_STRING;
             break;
         }
         lex.offset++;
         break;
       }
-      case EMBEDJSON_STATE_IN_NUMBER:
+      case LEXER_STATE_IN_NUMBER:
         if ('0' <= *data && *data <= '9') {
           lex.int_value = 10 * lex.int_value + *data - '0';
         } else if (*data == '.') {
-          lex.state = EMBEDJSON_STATE_IN_NUMBER_FRAC;
+          lex.state = LEXER_STATE_IN_NUMBER_FRAC;
         } else {
           data--;
           if (lex.minus) {
             lex.int_value = 0 - lex.int_value;
           }
-          embedjson_on_new_tokeni(lexer, lex.int_value);
-          lex.state = EMBEDJSON_STATE_LOOKUP_TOKEN;
+          embedjson_tokeni(lexer, lex.int_value);
+          lex.state = LEXER_STATE_LOOKUP_TOKEN;
           lex.int_value = 0;
           lex.minus = 0;
-          lex.state = EMBEDJSON_STATE_LOOKUP_TOKEN;
+          lex.state = LEXER_STATE_LOOKUP_TOKEN;
         }
         break;
-      case EMBEDJSON_STATE_IN_NUMBER_FRAC:
+      case LEXER_STATE_IN_NUMBER_FRAC:
         if ('0' <= *data && *data <= '9') {
           lex.frac_value = 10 * lex.frac_value + *data - '0';
           lex.frac_power++;
         } else if (*data == 'e' || *data == 'E') {
-          lex.state = EMBEDJSON_STATE_IN_NUMBER_EXP_SIGN;
+          lex.state = LEXER_STATE_IN_NUMBER_EXP_SIGN;
         } else {
           data--;
           double value = lex.frac_value * powm10(lex.frac_power) + lex.int_value;
           if (lex.minus) {
             value = 0 - value;
           }
-          embedjson_on_new_tokenf(lexer, value);
+          embedjson_tokenf(lexer, value);
           lex.int_value = 0;
           lex.frac_power = 0;
           lex.frac_value = 0;
           lex.minus = 0;
-          lex.state = EMBEDJSON_STATE_LOOKUP_TOKEN;
+          lex.state = LEXER_STATE_LOOKUP_TOKEN;
         }
         break;
-      case EMBEDJSON_STATE_IN_NUMBER_EXP_SIGN:
+      case LEXER_STATE_IN_NUMBER_EXP_SIGN:
         if (*data == '-') {
           lex.exp_minus = 1;
         } else if ('0' <= *data && *data <= '9') {
@@ -233,9 +233,9 @@ void embedjson_lexer_push(embedjson_lexer* lexer, const char* data, size_t size)
         } else if (*data != '+') {
           embedjson_error(data);
         }
-        lex.state = EMBEDJSON_STATE_IN_NUMBER_EXP;
+        lex.state = LEXER_STATE_IN_NUMBER_EXP;
         break;
-      case EMBEDJSON_STATE_IN_NUMBER_EXP:
+      case LEXER_STATE_IN_NUMBER_EXP:
         if ('0' <= *data && *data <= '9') {
           lex.exp_value = 10 * lex.exp_value + *data - '0';
         } else {
@@ -245,50 +245,50 @@ void embedjson_lexer_push(embedjson_lexer* lexer, const char* data, size_t size)
           if (lex.minus) {
             value = 0 - value;
           }
-          embedjson_on_new_tokenf(lexer, value);
+          embedjson_tokenf(lexer, value);
           lex.int_value = 0;
           lex.frac_power = 0;
           lex.frac_value = 0;
           lex.minus = 0;
           lex.exp_value = 0;
           lex.exp_minus = 0;
-          lex.state = EMBEDJSON_STATE_LOOKUP_TOKEN;
+          lex.state = LEXER_STATE_LOOKUP_TOKEN;
         }
         break;
-      case EMBEDJSON_STATE_IN_TRUE:
+      case LEXER_STATE_IN_TRUE:
         if (*data != "true"[lex.offset]) {
           embedjson_error(data);
           return;
         }
         if (++lex.offset > 3) {
-          embedjson_on_new_token(lexer, EMBEDJSON_TOKEN_TRUE);
-          lex.state = EMBEDJSON_STATE_LOOKUP_TOKEN;
+          embedjson_token(lexer, EMBEDJSON_TOKEN_TRUE);
+          lex.state = LEXER_STATE_LOOKUP_TOKEN;
         }
         break;
-      case EMBEDJSON_STATE_IN_FALSE:
+      case LEXER_STATE_IN_FALSE:
         if (*data != "false"[lex.offset]) {
           embedjson_error(data);
           return;
         }
         if (++lex.offset > 4) {
-          embedjson_on_new_token(lexer, EMBEDJSON_TOKEN_FALSE);
-          lex.state = EMBEDJSON_STATE_LOOKUP_TOKEN;
+          embedjson_token(lexer, EMBEDJSON_TOKEN_FALSE);
+          lex.state = LEXER_STATE_LOOKUP_TOKEN;
         }
         break;
-      case EMBEDJSON_STATE_IN_NULL:
+      case LEXER_STATE_IN_NULL:
         if (*data != "null"[lex.offset]) {
           embedjson_error(data);
           return;
         }
         if (++lex.offset > 3) {
-          embedjson_on_new_token(lexer, EMBEDJSON_TOKEN_NULL);
-          lex.state = EMBEDJSON_STATE_LOOKUP_TOKEN;
+          embedjson_token(lexer, EMBEDJSON_TOKEN_NULL);
+          lex.state = LEXER_STATE_LOOKUP_TOKEN;
         }
         break;
     }
   }
-  if (lex.state == EMBEDJSON_STATE_IN_STRING && data != string_chunk_begin) {
-    embedjson_on_new_tokenc(lexer, string_chunk_begin, data - string_chunk_begin);
+  if (lex.state == LEXER_STATE_IN_STRING && data != string_chunk_begin) {
+    embedjson_tokenc(lexer, string_chunk_begin, data - string_chunk_begin);
   }
 
   /*
@@ -304,42 +304,42 @@ void embedjson_lexer_finalize(embedjson_lexer* lexer)
 {
   embedjson_lexer lex = *lexer;
   switch(lex.state) {
-    case EMBEDJSON_STATE_LOOKUP_TOKEN:
+    case LEXER_STATE_LOOKUP_TOKEN:
       break;
-    case EMBEDJSON_STATE_IN_STRING:
-    case EMBEDJSON_STATE_IN_STRING_ESCAPE:
-    case EMBEDJSON_STATE_IN_STRING_UNICODE_ESCAPE:
+    case LEXER_STATE_IN_STRING:
+    case LEXER_STATE_IN_STRING_ESCAPE:
+    case LEXER_STATE_IN_STRING_UNICODE_ESCAPE:
       embedjson_error(NULL);
       break;
-    case EMBEDJSON_STATE_IN_NUMBER:
+    case LEXER_STATE_IN_NUMBER:
       if (lex.minus) {
         lex.int_value = 0 - lex.int_value;
       }
-      embedjson_on_new_tokeni(lexer, lex.int_value);
+      embedjson_tokeni(lexer, lex.int_value);
       break;
-    case EMBEDJSON_STATE_IN_NUMBER_FRAC: {
+    case LEXER_STATE_IN_NUMBER_FRAC: {
       double value = lex.frac_value * powm10(lex.frac_power) + lex.int_value;
       if (lex.minus) {
         value = 0 - value;
       }
-      embedjson_on_new_tokenf(lexer, value);
+      embedjson_tokenf(lexer, value);
       break;
     }
-    case EMBEDJSON_STATE_IN_NUMBER_EXP_SIGN:
+    case LEXER_STATE_IN_NUMBER_EXP_SIGN:
       embedjson_error(NULL);
       break;
-    case EMBEDJSON_STATE_IN_NUMBER_EXP: {
+    case LEXER_STATE_IN_NUMBER_EXP: {
       double value = lex.frac_value * powm10(lex.frac_power) + lex.int_value;
       value *= powm10(lex.exp_minus ? lex.exp_value : 0 - lex.exp_value);
       if (lex.minus) {
         value = 0 - value;
       }
-      embedjson_on_new_tokenf(lexer, value);
+      embedjson_tokenf(lexer, value);
       break;
     }
-    case EMBEDJSON_STATE_IN_TRUE:
-    case EMBEDJSON_STATE_IN_FALSE:
-    case EMBEDJSON_STATE_IN_NULL:
+    case LEXER_STATE_IN_TRUE:
+    case LEXER_STATE_IN_FALSE:
+    case LEXER_STATE_IN_NULL:
       embedjson_error(NULL);
       break;
   }
