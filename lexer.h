@@ -7,9 +7,11 @@ typedef struct embedjson_lexer {
   unsigned char offset;
   char unicode_cp[2];
   char minus : 1;
-  char is_double : 1;
+  char exp_minus : 1;
   int64_t int_value;
-  double double_value;
+  uint64_t frac_value;
+  uint16_t frac_power;
+  uint16_t exp_value;
 } embedjson_lexer;
 
 typedef enum {

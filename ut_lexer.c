@@ -365,6 +365,41 @@ static token_info test_08_tokens[] = {
 };
 
 
+/* test 09 */
+static char test_09_json[] = "-10.0152e+02";
+static data_chunk test_09_data_chunks[] = {
+  {.data = test_09_json, .size = SIZEOF(test_09_json) - 1}
+};
+static token_info test_09_tokens[] = {
+  {
+    .type = EMBEDJSON_TOKEN_NUMBER,
+    .value_type = TOKEN_VALUE_TYPE_FP,
+    .value = {.fp = -1001.52 }
+  }
+};
+
+
+/* test 10 */
+static char test_10_json[] = "-10.0152e-2 10000.00";
+static data_chunk test_10_data_chunks[] = {
+  {.data = test_10_json, .size = 6},
+  {.data = test_10_json + 6, .size = 9},
+  {.data = test_10_json + 15, .size = SIZEOF(test_10_json) - 16}
+};
+static token_info test_10_tokens[] = {
+  {
+    .type = EMBEDJSON_TOKEN_NUMBER,
+    .value_type = TOKEN_VALUE_TYPE_FP,
+    .value = {.fp = -0.100152 }
+  },
+  {
+    .type = EMBEDJSON_TOKEN_NUMBER,
+    .value_type = TOKEN_VALUE_TYPE_FP,
+    .value = {.fp = 10000. }
+  }
+};
+
+
 #define TEST_CASE(n, description) \
 { \
   .name = (description), \
@@ -383,21 +418,23 @@ static test_case all_tests[] = {
   TEST_CASE(05, "brackets, comma and colon separated by escaped wss"),
   TEST_CASE(06, "raw unicode string"),
   TEST_CASE(07, "ascii escaping"),
-  TEST_CASE(08, "unicode escaping")
+  TEST_CASE(08, "unicode escaping"),
+  TEST_CASE(09, "double -10.0152+e02"),
+  TEST_CASE(10, "reset state after parsing double, -10.0152e-2 10000.00")
 };
 
 
 int main()
 {
   size_t ntests = SIZEOF(all_tests);
-  int counter_width = (int) floor(log10(ntests));
+  int counter_width = 1 + (int) floor(log10(ntests));
   for (size_t i = 0; i < ntests; ++i) {
     itest = all_tests + i;
     itoken = itest->tokens;
     embedjson_lexer lexer;
     memset(&lexer, 0, sizeof(lexer));
-    printf("[%*d/%*d] Run test \"%s\" ... ", counter_width, (int) i + 1,
-        counter_width, (int) ntests, itest->name);
+    printf("[%*d/%d] Run test \"%s\" ... ", counter_width, (int) i + 1,
+        (int) ntests, itest->name);
     for (size_t j = 0; j < itest->nchunks; ++j) {
       idata_chunk = itest->data_chunks + j;
       embedjson_lexer_push(&lexer, idata_chunk->data, idata_chunk->size);
