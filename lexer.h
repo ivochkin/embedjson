@@ -59,14 +59,14 @@ typedef enum {
  *
  * @note If error occurs, lexer state remain unchanged
  */
-void embedjson_lexer_push(embedjson_lexer* lexer,
+int embedjson_lexer_push(embedjson_lexer* lexer,
     const char* data, size_t size);
 
 /**
  * Called by embedjson_finalize, results are returned as in
  * the embedjson_lexer_push function.
  */
-void embedjson_lexer_finalize(embedjson_lexer* lexer);
+int embedjson_lexer_finalize(embedjson_lexer* lexer);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed any token
@@ -83,14 +83,14 @@ void embedjson_lexer_finalize(embedjson_lexer* lexer);
  * - EMBEDJSON_TOKEN_FALSE,
  * - EMBEDJSON_TOKEN_NULL
  */
-void embedjson_token(embedjson_lexer* lexer, embedjson_tok token);
+int embedjson_token(embedjson_lexer* lexer, embedjson_tok token);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
  * EMBEDJSON_TOKEN_STRING_CHUNK token. A pointer to buffer that contains
  * string chunk data and it's size are provided to the callback
  */
-void embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size);
+int embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
@@ -98,7 +98,7 @@ void embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size);
  *
  * @see embedjson_tokenf
  */
-void embedjson_tokeni(embedjson_lexer* lexer, int64_t value);
+int embedjson_tokeni(embedjson_lexer* lexer, int64_t value);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
@@ -106,5 +106,14 @@ void embedjson_tokeni(embedjson_lexer* lexer, int64_t value);
  *
  * @see embedjson_tokeni
  */
-void embedjson_tokenf(embedjson_lexer* lexer, double value);
+int embedjson_tokenf(embedjson_lexer* lexer, double value);
+
+/**
+ * Called from embedjson_lexer_push when string parsing is complete.
+ *
+ * From the user's perspective, a sequence of embedjson_tokenc calls
+ * will always end with a single embedjson_tokenc_finalize call.
+ * The call indicate that all chunks of the string were parsed.
+ */
+int embedjson_tokenc_finalize(embedjson_lexer* lexer);
 

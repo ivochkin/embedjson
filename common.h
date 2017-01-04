@@ -1,3 +1,3 @@
 #pragma once
 
-void embedjson_error(const char* position);
+int embedjson_error(const char* position);
