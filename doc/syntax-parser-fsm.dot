@@ -1,3 +1,21 @@
+/*
+ * Embedjson syntax parser Finite State Machine transitions diagram.
+ *
+ * Label syntax " {, push { " means "If input symbol is {, then
+ * push { onto the stack and follow this transition".
+ *
+ * Label syntax " ], pop [, { " means "If input symbol is ], then
+ * ensure that top element of the stack is [, pop it, and if the
+ * pop element of the stack is now { follow this transition".
+ *
+ * Transition induced by the "primitive" symbol are ones that
+ * are made when one of the following tokens is encountered:
+ * - string
+ * - number
+ * - true
+ * - false
+ * - null
+ */
 digraph finite_state_machine {
   node [shape = point ]; entry
 
