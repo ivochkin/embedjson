@@ -1,5 +1,5 @@
 /*
- * Embedjson syntax parser Finite State Machine transitions diagram.
+ * Embedjson syntax parser Pushdown Automaton [1] transitions diagram.
  *
  * Label syntax " {, push { " means "If input symbol is {, then
  * push { onto the stack and follow this transition".
@@ -15,6 +15,8 @@
  * - true
  * - false
  * - null
+ *
+ * [1] https://en.wikipedia.org/wiki/Pushdown_automaton
  */
 digraph finite_state_machine {
   node [shape = point ]; entry
@@ -34,6 +36,9 @@ digraph finite_state_machine {
   expect_value -> expect_string [label=" {, push { "];
   expect_value -> done [label=" primitive "];
   expect_string -> expect_colon [label=" string "];
+  expect_string -> done [label=" }, pop {, empty "];
+  expect_string -> expect_object_comma [label=" }, pop {, { "];
+  expect_string -> expect_array_comma [label=" }, pop {, [ "];
   expect_colon -> expect_object_value [label=" : "];
   expect_object_value -> expect_object_comma [label=" primitive "];
   expect_object_value -> expect_string [label=" {, push { "];

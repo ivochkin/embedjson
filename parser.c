@@ -99,7 +99,8 @@ int embedjson_push(embedjson_parser* parser, const char* data, size_t size)
 
 int embedjson_finalize(embedjson_parser* parser)
 {
-  return embedjson_lexer_finalize(&parser->lexer);
+  RETURN_IF(embedjson_lexer_finalize(&parser->lexer));
+  return parser->state != PARSER_STATE_DONE;
 }
 
 
@@ -148,12 +149,24 @@ int embedjson_token(embedjson_lexer* lexer, embedjson_tok token)
       }
       break;
     case PARSER_STATE_EXPECT_STRING:
-      /*
-       * String chunks are returned via embedjson_tokenc
-       * function only. Primitive tokens are not expected
-       * at this state.
-       */
-      return embedjson_error(NULL);
+      if (token == EMBEDJSON_TOKEN_CLOSE_CURLY_BRACKET) {
+        if (stack_empty(parser)
+            || stack_top(parser) != STACK_VALUE_CURLY) {
+          return embedjson_error(NULL);
+        }
+        RETURN_IF(embedjson_end_object(parser));
+        stack_pop(parser);
+        if (stack_empty(parser)) {
+          parser->state = PARSER_STATE_DONE;
+        } else if (stack_top(parser) == STACK_VALUE_CURLY) {
+          parser->state = PARSER_STATE_EXPECT_OBJECT_COMMA;
+        } else {
+          parser->state = PARSER_STATE_EXPECT_ARRAY_COMMA;
+        }
+      } else {
+        return embedjson_error(NULL);
+      }
+      break;
     case PARSER_STATE_EXPECT_COLON:
       if (token != EMBEDJSON_TOKEN_COLON) {
         return embedjson_error(NULL);
