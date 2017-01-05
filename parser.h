@@ -1,3 +1,10 @@
+/**
+ * @copyright
+ * Copyright (c) 2016-2017 Stanislav Ivochkin
+ *
+ * Licensed under the MIT License (see LICENSE)
+ */
+
 #pragma once
 #include <stddef.h> /* for size_t */
 #include "lexer.h"
