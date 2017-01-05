@@ -67,9 +67,10 @@ static token_info* itoken = NULL;
 
 static void fail(const char* fmt, ...)
 {
+  size_t i;
   printf(ANSI_COLOR_RED "FAILED" ANSI_COLOR_RESET "\n\n");
   printf("Data chunks:\n");
-  for (size_t i = 0; i < itest->nchunks; ++i) {
+  for (i = 0; i < itest->nchunks; ++i) {
     data_chunk c = itest->data_chunks[i];
     printf("%llu. \"%.*s\"\n", (ull) i + 1, (int) c.size, c.data);
   }
@@ -445,15 +446,16 @@ static test_case all_tests[] = {
 int main()
 {
   size_t ntests = SIZEOF(all_tests);
+  size_t i, j;
   int counter_width = 1 + (int) floor(log10(ntests));
-  for (size_t i = 0; i < ntests; ++i) {
+  for (i = 0; i < ntests; ++i) {
     itest = all_tests + i;
     itoken = itest->tokens;
     embedjson_lexer lexer;
     memset(&lexer, 0, sizeof(lexer));
     printf("[%*d/%d] Run test \"%s\" ... ", counter_width, (int) i + 1,
         (int) ntests, itest->name);
-    for (size_t j = 0; j < itest->nchunks; ++j) {
+    for (j = 0; j < itest->nchunks; ++j) {
       idata_chunk = itest->data_chunks + j;
       embedjson_lexer_push(&lexer, idata_chunk->data, idata_chunk->size);
     }

@@ -107,7 +107,8 @@ int embedjson_lexer_push(embedjson_lexer* lexer, const char* data, size_t size)
   embedjson_lexer lex = *lexer;
   embedjson_lexer orig_lex = *lexer;
   const char* string_chunk_begin = lex.state == LEXER_STATE_IN_STRING ? data : NULL;
-  for (const char* end = data + size; data != end; ++data) {
+  const char* end = data + size;
+  for (; data != end; ++data) {
     switch(lex.state) {
       case LEXER_STATE_LOOKUP_TOKEN:
         if (*data == ' ' || *data == '\n' || *data == '\r' || *data == '\t') {
