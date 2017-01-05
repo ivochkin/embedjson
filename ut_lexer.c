@@ -20,7 +20,9 @@
 #define ANSI_COLOR_GREEN "\x1b[32m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 
+
 typedef unsigned long long ull;
+
 
 typedef enum token_value_type {
   TOKEN_VALUE_TYPE_INTEGER,
