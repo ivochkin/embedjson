@@ -223,6 +223,20 @@ int embedjson_token(embedjson_lexer* lexer, embedjson_tok token)
           RETURN_IF(embedjson_begin_array(parser));
           break;
         case EMBEDJSON_TOKEN_CLOSE_BRACKET:
+          if (stack_empty(parser)
+              || stack_top(parser) == STACK_VALUE_CURLY) {
+            return embedjson_error(NULL);
+          }
+          RETURN_IF(embedjson_end_array(parser));
+          stack_pop(parser);
+          if (stack_empty(parser)) {
+            parser->state = PARSER_STATE_DONE;
+          } else if (stack_top(parser) == STACK_VALUE_CURLY) {
+            parser->state = PARSER_STATE_EXPECT_OBJECT_COMMA;
+          } else {
+            parser->state = PARSER_STATE_EXPECT_ARRAY_COMMA;
+          }
+          break;
         case EMBEDJSON_TOKEN_COMMA:
         case EMBEDJSON_TOKEN_COLON:
         case EMBEDJSON_TOKEN_STRING_CHUNK:

@@ -52,6 +52,9 @@ digraph finite_state_machine {
   expect_array_value -> expect_array_comma [label=" primitive "];
   expect_array_value -> expect_array_value [label=" [, push [ "];
   expect_array_value -> expect_string [label= " {, push { "];
+  expect_array_value -> done [label=" ] pop [, empty "];
+  expect_array_value -> expect_array_comma [label=" ], pop [, [ "];
+  expect_array_value -> expect_object_comma [label=" ], pop [, { "];
   expect_array_comma -> expect_array_value [label=" , "];
   expect_array_comma -> done [label=" ] pop [, empty "];
   expect_array_comma -> expect_array_comma [label=" ], pop [, [ "];
