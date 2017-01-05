@@ -15,7 +15,7 @@ matrix:
   include:
   - os: linux
     compiler: gcc
-    env: UPLOAD_COVERAGE=YES CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS=\"--coverage -O0\""
+    env: UPLOAD_COVERAGE=YES CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS=--coverage"
     addons:
       apt:
         packages:
