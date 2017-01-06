@@ -5,9 +5,15 @@
  * Licensed under the MIT License (see LICENSE)
  */
 
+#ifndef EMBEDJSON_AMALGAMATE
 #pragma once
+#endif /* EMBEDJSON_AMALGAMATE */
 #include <stdint.h> /* for int64_t */
 #include <stddef.h> /* for size_t */
+#ifndef EMBEDJSON_AMALGAMATE
+#include "common.h"
+#endif /* EMBEDJSON_AMALGAMATE */
+
 
 /**
  * JSON lexer. Transforms input stream of bytes into a stream
@@ -43,6 +49,7 @@ typedef struct embedjson_lexer {
   uint16_t exp_value;
 } embedjson_lexer;
 
+
 /**
  * JSON token type
  */
@@ -66,14 +73,14 @@ typedef enum {
  *
  * @note If error occurs, lexer state remain unchanged
  */
-int embedjson_lexer_push(embedjson_lexer* lexer,
+EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
     const char* data, size_t size);
 
 /**
  * Called by embedjson_finalize, results are returned as in
  * the embedjson_lexer_push function.
  */
-int embedjson_lexer_finalize(embedjson_lexer* lexer);
+EMBEDJSON_STATIC int embedjson_lexer_finalize(embedjson_lexer* lexer);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed any token
@@ -90,14 +97,14 @@ int embedjson_lexer_finalize(embedjson_lexer* lexer);
  * - EMBEDJSON_TOKEN_FALSE,
  * - EMBEDJSON_TOKEN_NULL
  */
-int embedjson_token(embedjson_lexer* lexer, embedjson_tok token);
+EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer, embedjson_tok token);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
  * EMBEDJSON_TOKEN_STRING_CHUNK token. A pointer to buffer that contains
  * string chunk data and it's size are provided to the callback
  */
-int embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size);
+EMBEDJSON_STATIC int embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
@@ -105,7 +112,7 @@ int embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size);
  *
  * @see embedjson_tokenf
  */
-int embedjson_tokeni(embedjson_lexer* lexer, int64_t value);
+EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, int64_t value);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
@@ -113,7 +120,7 @@ int embedjson_tokeni(embedjson_lexer* lexer, int64_t value);
  *
  * @see embedjson_tokeni
  */
-int embedjson_tokenf(embedjson_lexer* lexer, double value);
+EMBEDJSON_STATIC int embedjson_tokenf(embedjson_lexer* lexer, double value);
 
 /**
  * Called from embedjson_lexer_push when string parsing is complete.
@@ -122,5 +129,5 @@ int embedjson_tokenf(embedjson_lexer* lexer, double value);
  * will always end with a single embedjson_tokenc_finalize call.
  * The call indicate that all chunks of the string were parsed.
  */
-int embedjson_tokenc_finalize(embedjson_lexer* lexer);
+EMBEDJSON_STATIC int embedjson_tokenc_finalize(embedjson_lexer* lexer);
 

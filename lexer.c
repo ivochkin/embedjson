@@ -5,8 +5,10 @@
  * Licensed under the MIT License (see LICENSE)
  */
 
+#ifndef EMBEDJSON_AMALGAMATE
 #include "lexer.h"
 #include "common.h"
+#endif /* EMBEDJSON_AMALGAMATE */
 
 
 typedef enum {
@@ -102,7 +104,7 @@ static double powm10(int n)
 }
 
 
-int embedjson_lexer_push(embedjson_lexer* lexer, const char* data, size_t size)
+EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer, const char* data, size_t size)
 {
   embedjson_lexer lex = *lexer;
   embedjson_lexer orig_lex = *lexer;
@@ -320,7 +322,7 @@ int embedjson_lexer_push(embedjson_lexer* lexer, const char* data, size_t size)
 }
 
 
-int embedjson_lexer_finalize(embedjson_lexer* lexer)
+EMBEDJSON_STATIC int embedjson_lexer_finalize(embedjson_lexer* lexer)
 {
   embedjson_lexer lex = *lexer;
   switch(lex.state) {

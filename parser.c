@@ -5,8 +5,10 @@
  * Licensed under the MIT License (see LICENSE)
  */
 
+#ifndef EMBEDJSON_AMALGAMATE
 #include "common.h"
 #include "parser.h"
+#endif /* EMBEDJSON_AMALGAMATE */
 
 
 typedef enum {
@@ -27,7 +29,7 @@ typedef enum {
 } parser_stack_value;
 
 
-#if EMBEDJSON_EXTERNAL_STACK
+#ifdef EMBEDJSON_EXTERNAL_STACK
 #define STACK_CAPACITY(p) (p)->stack_capacity
 #else
 #define STACK_CAPACITY(p) sizeof((p)->stack)
@@ -91,20 +93,20 @@ static unsigned char stack_top(embedjson_parser* parser)
 }
 
 
-int embedjson_push(embedjson_parser* parser, const char* data, size_t size)
+EMBEDJSON_STATIC int embedjson_push(embedjson_parser* parser, const char* data, size_t size)
 {
   return embedjson_lexer_push(&parser->lexer, data, size);
 }
 
 
-int embedjson_finalize(embedjson_parser* parser)
+EMBEDJSON_STATIC int embedjson_finalize(embedjson_parser* parser)
 {
   RETURN_IF(embedjson_lexer_finalize(&parser->lexer));
   return parser->state != PARSER_STATE_DONE;
 }
 
 
-int embedjson_token(embedjson_lexer* lexer, embedjson_tok token)
+EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer, embedjson_tok token)
 {
   /*
    * See doc/syntax-parser-fsm.dot for the explanation what's
@@ -309,7 +311,7 @@ int embedjson_token(embedjson_lexer* lexer, embedjson_tok token)
 }
 
 
-int embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size)
+EMBEDJSON_STATIC int embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size)
 {
   embedjson_parser* parser = (embedjson_parser*)(lexer);
   switch (parser->state) {
@@ -334,7 +336,7 @@ int embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size)
 }
 
 
-int embedjson_tokeni(embedjson_lexer* lexer, int64_t value)
+EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, int64_t value)
 {
   embedjson_parser* parser = (embedjson_parser*)(lexer);
   switch (parser->state) {
@@ -364,7 +366,7 @@ int embedjson_tokeni(embedjson_lexer* lexer, int64_t value)
 }
 
 
-int embedjson_tokenf(embedjson_lexer* lexer, double value)
+EMBEDJSON_STATIC int embedjson_tokenf(embedjson_lexer* lexer, double value)
 {
   embedjson_parser* parser = (embedjson_parser*)(lexer);
   switch (parser->state) {
@@ -393,7 +395,7 @@ int embedjson_tokenf(embedjson_lexer* lexer, double value)
   return 0;
 }
 
-int embedjson_tokenc_finalize(embedjson_lexer* lexer)
+EMBEDJSON_STATIC int embedjson_tokenc_finalize(embedjson_lexer* lexer)
 {
   embedjson_parser* parser = (embedjson_parser*)(lexer);
   switch (parser->state) {
