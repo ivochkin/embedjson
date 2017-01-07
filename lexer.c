@@ -42,9 +42,9 @@ do { \
  * memcmp implementation taken from musl:
  * http://git.musl-libc.org/cgit/musl/tree/src/string/memcmp.c
  */
-static int memcmp(const void *vl, const void *vr, size_t n)
+static int embedjson_memcmp(const void *vl, const void *vr, size_t n)
 {
-  const unsigned char* l = vl, *r = vr;
+  const unsigned char* l = (const unsigned char*) vl, *r = (const unsigned char*) vr;
   for (; n && *l == *r; n--, l++, r++);
   return n ? *l - *r : 0;
 }
@@ -315,7 +315,7 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer, const char* da
   /*
    * Cache-friendly update lexer state only if it has changed
    */
-  if (memcmp(&lex, lexer, sizeof(lex))) {
+  if (embedjson_memcmp(&lex, lexer, sizeof(lex))) {
     *lexer = lex;
   }
   return 0;
