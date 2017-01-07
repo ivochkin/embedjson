@@ -2,10 +2,39 @@
 
 cat >embedjson.c <<EOT
 /**
- * @copyright
- * Copyright (c) 2016-2017 Stanislav Ivochkin
+ * This is an amalgamated version of the embedjson library.
  *
- * Licensed under the MIT License (see LICENSE)
+ * Regular sources of the library could be found in the
+ * official repository:
+ *
+ *   https://github.com/ivochkin/embedjson
+ *
+ * "Amalgamated" means that all header and sources files
+ * of the library are merged into a single embedjson.c file.
+ * Due to the embedjson design, a single C file is enough,
+ * since the library is considered to be inlined into each
+ * object file that needs it. Code bloating is expected to
+ * be eliminated by the LTO (Link-Time Optimization) compiler
+ * option.
+ *
+ * Embedjson revision: $(git rev-parse HEAD)
+ * Embedjson version: $(git describe --tags --long)
+ * Generated at: $(LC_ALL=en_US.utf8 date --utc)
+ *
+ * @copyright
+EOT
+
+# Paste commented LICENSE file
+while read -r line
+do
+  if [ "$line" == "" ]; then
+    echo " *" >> embedjson.c
+  else
+    echo " * $line" >> embedjson.c
+  fi
+done < LICENSE
+
+cat >>embedjson.c <<EOT
  */
 
 #define EMBEDJSON_AMALGAMATE
