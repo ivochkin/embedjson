@@ -107,7 +107,6 @@ static double powm10(int n)
 EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer, const char* data, size_t size)
 {
   embedjson_lexer lex = *lexer;
-  embedjson_lexer orig_lex = *lexer;
   const char* string_chunk_begin = lex.state == LEXER_STATE_IN_STRING ? data : NULL;
   const char* end = data + size;
   for (; data != end; ++data) {
