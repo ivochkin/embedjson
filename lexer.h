@@ -97,14 +97,16 @@ EMBEDJSON_STATIC int embedjson_lexer_finalize(embedjson_lexer* lexer);
  * - EMBEDJSON_TOKEN_FALSE,
  * - EMBEDJSON_TOKEN_NULL
  */
-EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer, embedjson_tok token);
+EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
+    embedjson_tok token);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
  * EMBEDJSON_TOKEN_STRING_CHUNK token. A pointer to buffer that contains
  * string chunk data and it's size are provided to the callback
  */
-EMBEDJSON_STATIC int embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size);
+EMBEDJSON_STATIC int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
+    size_t size);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed

@@ -311,7 +311,8 @@ EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer, embedjson_tok token
 }
 
 
-EMBEDJSON_STATIC int embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size)
+EMBEDJSON_STATIC int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
+    size_t size)
 {
   embedjson_parser* parser = (embedjson_parser*)(lexer);
   switch (parser->state) {

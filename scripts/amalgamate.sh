@@ -21,20 +21,16 @@ cat >embedjson.c <<EOT
  * Embedjson version: $(git describe --tags --long)
  * Generated at: $(LC_ALL=en_US.utf8 date --utc)
  *
- * @copyright
+ */
+
+/**
+@copyright
+
 EOT
 
-# Paste commented LICENSE file
-while read -r line
-do
-  if [ "$line" == "" ]; then
-    echo " *" >> embedjson.c
-  else
-    echo " * $line" >> embedjson.c
-  fi
-done < LICENSE
+cat LICENSE >> embedjson.c
 
-cat >>embedjson.c <<EOT
+cat >> embedjson.c <<EOT
  */
 
 #define EMBEDJSON_AMALGAMATE

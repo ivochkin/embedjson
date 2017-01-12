@@ -31,7 +31,8 @@ typedef struct embedjson_parser {
 #endif
 } embedjson_parser;
 
-EMBEDJSON_STATIC int embedjson_push(embedjson_parser* parser, const char* data, size_t size);
+EMBEDJSON_STATIC int embedjson_push(embedjson_parser* parser, const char* data,
+    size_t size);
 
 EMBEDJSON_STATIC int embedjson_finalize(embedjson_parser* parser);
 
