@@ -31,6 +31,12 @@ typedef enum token_value_type {
 } token_value_type;
 
 
+typedef enum additional_token_type {
+  EMBEDJSON_TOKEN_STRING_BEGIN = EMBEDJSON_TOKEN_NULL + 1,
+  EMBEDJSON_TOKEN_STRING_END,
+} additional_token_type;
+
+
 typedef struct token_info {
   int type;
   token_value_type value_type;
@@ -155,10 +161,15 @@ int embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size)
 }
 
 
-int embedjson_tokenc_finalize(embedjson_lexer* lexer)
+int embedjson_tokenc_begin(embedjson_lexer* lexer)
 {
-  (void) lexer;
-  return 0;
+  return on_token((token_info) {.type = EMBEDJSON_TOKEN_STRING_BEGIN});
+}
+
+
+int embedjson_tokenc_end(embedjson_lexer* lexer)
+{
+  return on_token((token_info) {.type = EMBEDJSON_TOKEN_STRING_END});
 }
 
 
@@ -202,6 +213,7 @@ static data_chunk test_02_data_chunks[] = {
   {.data = test_02_json + 7, .size = SIZEOF(test_02_json) - 8}
 };
 static token_info test_02_tokens[] = {
+  { .type = EMBEDJSON_TOKEN_STRING_BEGIN },
   {
     .type = EMBEDJSON_TOKEN_STRING_CHUNK,
     .value_type = TOKEN_VALUE_TYPE_STR,
@@ -211,7 +223,8 @@ static token_info test_02_tokens[] = {
     .type = EMBEDJSON_TOKEN_STRING_CHUNK,
     .value_type = TOKEN_VALUE_TYPE_STR,
     .value = {.str = {.data = " world", .size = 6}}
-  }
+  },
+  { .type = EMBEDJSON_TOKEN_STRING_END }
 };
 
 
@@ -290,11 +303,13 @@ static data_chunk test_06_data_chunks[] = {
   {.data = test_06_json, .size = SIZEOF(test_06_json) - 1}
 };
 static token_info test_06_tokens[] = {
+  { .type = EMBEDJSON_TOKEN_STRING_BEGIN },
   {
     .type = EMBEDJSON_TOKEN_STRING_CHUNK,
     .value_type = TOKEN_VALUE_TYPE_STR,
     .value = {.str = {.data = test_06_json + 1, .size = SIZEOF(test_06_json) - 3}}
-  }
+  },
+  { .type = EMBEDJSON_TOKEN_STRING_END }
 };
 
 
@@ -307,6 +322,7 @@ static data_chunk test_07_data_chunks[] = {
   {.data = test_07_json + 12, .size = SIZEOF(test_07_json) - 13}
 };
 static token_info test_07_tokens[] = {
+  { .type = EMBEDJSON_TOKEN_STRING_BEGIN },
   {
     .type = EMBEDJSON_TOKEN_STRING_CHUNK,
     .value_type = TOKEN_VALUE_TYPE_STR,
@@ -336,7 +352,8 @@ static token_info test_07_tokens[] = {
     .type = EMBEDJSON_TOKEN_STRING_CHUNK,
     .value_type = TOKEN_VALUE_TYPE_STR,
     .value = {.str = {.data = "\"", .size = 1}}
-  }
+  },
+  { .type = EMBEDJSON_TOKEN_STRING_END }
 };
 
 
@@ -351,6 +368,7 @@ static data_chunk test_08_data_chunks[] = {
   {.data = test_08_json + 31, .size = SIZEOF(test_08_json) - 32},
 };
 static token_info test_08_tokens[] = {
+  { .type = EMBEDJSON_TOKEN_STRING_BEGIN },
   {
     .type = EMBEDJSON_TOKEN_STRING_CHUNK,
     .value_type = TOKEN_VALUE_TYPE_STR,
@@ -380,7 +398,8 @@ static token_info test_08_tokens[] = {
     .type = EMBEDJSON_TOKEN_STRING_CHUNK,
     .value_type = TOKEN_VALUE_TYPE_STR,
     .value = {.str = {.data = "т", .size = 2}}
-  }
+  },
+  { .type = EMBEDJSON_TOKEN_STRING_END }
 };
 
 

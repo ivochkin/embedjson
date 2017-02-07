@@ -169,6 +169,7 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
         } else if (*data == '"') {
           string_chunk_begin = data + 1;
           lex.state = LEXER_STATE_IN_STRING;
+          embedjson_tokenc_begin(lexer);
           break;
         } else if (*data == 't') {
           lex.offset = 1;
@@ -199,7 +200,7 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
             RETURN_IF(embedjson_tokenc(lexer, string_chunk_begin,
                   data - string_chunk_begin));
           }
-          embedjson_tokenc_finalize(lexer);
+          embedjson_tokenc_end(lexer);
           lex.state = LEXER_STATE_LOOKUP_TOKEN;
         }
         break;

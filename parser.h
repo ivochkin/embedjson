@@ -40,8 +40,10 @@ EMBEDJSON_STATIC int embedjson_null(embedjson_parser* parser);
 EMBEDJSON_STATIC int embedjson_bool(embedjson_parser* parser, char value);
 EMBEDJSON_STATIC int embedjson_int(embedjson_parser* parser, int64_t value);
 EMBEDJSON_STATIC int embedjson_double(embedjson_parser* parser, double value);
+EMBEDJSON_STATIC int embedjson_string_begin(embedjson_parser* parser);
 EMBEDJSON_STATIC int embedjson_string_chunk(embedjson_parser* parser,
     const char* data, size_t size);
+EMBEDJSON_STATIC int embedjson_string_end(embedjson_parser* parser);
 EMBEDJSON_STATIC int embedjson_begin_object(embedjson_parser* parser);
 EMBEDJSON_STATIC int embedjson_end_object(embedjson_parser* parser);
 EMBEDJSON_STATIC int embedjson_begin_array(embedjson_parser* parser);

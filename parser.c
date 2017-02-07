@@ -80,10 +80,12 @@ static void stack_pop(embedjson_parser* parser)
   parser->stack_size--;
 }
 
+
 static unsigned char stack_empty(embedjson_parser* parser)
 {
   return !parser->stack_size;
 }
+
 
 static unsigned char stack_top(embedjson_parser* parser)
 {
@@ -396,7 +398,15 @@ EMBEDJSON_STATIC int embedjson_tokenf(embedjson_lexer* lexer, double value)
   return 0;
 }
 
-EMBEDJSON_STATIC int embedjson_tokenc_finalize(embedjson_lexer* lexer)
+
+EMBEDJSON_STATIC int embedjson_tokenc_begin(embedjson_lexer* lexer)
+{
+  embedjson_parser* parser = (embedjson_parser*)(lexer);
+  embedjson_string_begin(parser);
+}
+
+
+EMBEDJSON_STATIC int embedjson_tokenc_end(embedjson_lexer* lexer)
 {
   embedjson_parser* parser = (embedjson_parser*)(lexer);
   switch (parser->state) {
@@ -421,6 +431,7 @@ EMBEDJSON_STATIC int embedjson_tokenc_finalize(embedjson_lexer* lexer)
     default:
       return embedjson_error(NULL);
   }
+  embedjson_string_end(parser);
   return 0;
 }
 

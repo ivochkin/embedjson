@@ -28,19 +28,37 @@ typedef enum call_type {
   CALL_BOOL,
   CALL_INT,
   CALL_DOUBLE,
+  CALL_STRING_BEGIN,
   CALL_STRING_CHUNK,
+  CALL_STRING_END,
   CALL_BEGIN_OBJECT,
   CALL_END_OBJECT,
   CALL_BEGIN_ARRAY,
   CALL_END_ARRAY
 } call_type;
 
+const char* call_type_to_str(call_type ct)
+{
+  switch (ct) {
+    case CALL_NULL: return "CALL_NULL";
+    case CALL_BOOL: return "CALL_BOOL";
+    case CALL_INT: return "CALL_INT";
+    case CALL_DOUBLE: return "CALL_DOUBLE";
+    case CALL_STRING_BEGIN: return "CALL_STRING_BEGIN";
+    case CALL_STRING_CHUNK: return "CALL_STRING_CHUNK";
+    case CALL_STRING_END: return "CALL_STRING_END";
+    case CALL_BEGIN_OBJECT: return "CALL_BEGIN_OBJECT";
+    case CALL_END_OBJECT: return "CALL_END_OBJECT";
+    case CALL_BEGIN_ARRAY: return "CALL_BEGIN_ARRAY";
+    case CALL_END_ARRAY: return "CALL_END_ARRAY";
+    default: return "CALL_UNKNOWN";
+  };
+}
 
 typedef struct data_chunk {
   const char* data;
   size_t size;
 } data_chunk;
-
 
 typedef struct {
   const char* name;
@@ -49,7 +67,6 @@ typedef struct {
   size_t ncalls;
   call_type* calls;
 } test_case;
-
 
 static test_case* itest = NULL;
 static data_chunk* idata_chunk = NULL;
@@ -81,7 +98,8 @@ static int on_call(call_type call)
     fail("Enexpected call of type %d", call);
   }
   if (call != *icall) {
-    fail("Call type mismatch. Expected %d, got %d", *icall, call);
+    fail("Call type mismatch. Expected %s, got %s",
+        call_type_to_str(*icall), call_type_to_str(call));
   }
   icall = icall + 1;
   return 0;
@@ -118,9 +136,21 @@ int embedjson_double(embedjson_parser* parser, double value)
 }
 
 
+int embedjson_string_begin(embedjson_parser* parser)
+{
+  return on_call(CALL_STRING_BEGIN);
+}
+
+
 int embedjson_string_chunk(embedjson_parser* parser, const char* data, size_t size)
 {
   return on_call(CALL_STRING_CHUNK);
+}
+
+
+int embedjson_string_end(embedjson_parser* parser)
+{
+  return on_call(CALL_STRING_END);
 }
 
 
@@ -180,17 +210,25 @@ static data_chunk test_03_data_chunks[] = {
 };
 static call_type test_03_calls[] = {
   CALL_BEGIN_OBJECT,
+  CALL_STRING_BEGIN,
   CALL_STRING_CHUNK,
+  CALL_STRING_END,
   CALL_BEGIN_OBJECT,
+  CALL_STRING_BEGIN,
   CALL_STRING_CHUNK,
+  CALL_STRING_END,
   CALL_BOOL,
+  CALL_STRING_BEGIN,
   CALL_STRING_CHUNK,
+  CALL_STRING_END,
   CALL_BEGIN_ARRAY,
   CALL_INT,
   CALL_INT,
   CALL_END_ARRAY,
   CALL_END_OBJECT,
+  CALL_STRING_BEGIN,
   CALL_STRING_CHUNK,
+  CALL_STRING_END,
   CALL_NULL,
   CALL_END_OBJECT
 };
@@ -219,7 +257,9 @@ static call_type test_05_calls[] = {
   CALL_BEGIN_ARRAY,
   CALL_END_ARRAY,
   CALL_BEGIN_OBJECT,
+  CALL_STRING_BEGIN,
   CALL_STRING_CHUNK,
+  CALL_STRING_END,
   CALL_BEGIN_ARRAY,
   CALL_BEGIN_OBJECT,
   CALL_END_OBJECT,
