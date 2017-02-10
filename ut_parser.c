@@ -154,25 +154,25 @@ int embedjson_string_end(embedjson_parser* parser)
 }
 
 
-int embedjson_begin_object(embedjson_parser* parser)
+int embedjson_object_begin(embedjson_parser* parser)
 {
   return on_call(CALL_BEGIN_OBJECT);
 }
 
 
-int embedjson_end_object(embedjson_parser* parser)
+int embedjson_object_end(embedjson_parser* parser)
 {
   return on_call(CALL_END_OBJECT);
 }
 
 
-int embedjson_begin_array(embedjson_parser* parser)
+int embedjson_array_begin(embedjson_parser* parser)
 {
   return on_call(CALL_BEGIN_ARRAY);
 }
 
 
-int embedjson_end_array(embedjson_parser* parser)
+int embedjson_array_end(embedjson_parser* parser)
 {
   return on_call(CALL_END_ARRAY);
 }
