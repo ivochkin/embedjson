@@ -4,3 +4,7 @@
 [![codecov.io](https://codecov.io/github/ivochkin/embedjson/coverage.svg?branch=master)](https://codecov.io/github/ivochkin/embedjson?branch=master)
 
 SAX-style JSON parser, a component of jcppy code generator (https://github.com/ivochkin/jcppy)
+
+## TODO
+- Error handling
+- UTF validation
