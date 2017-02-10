@@ -106,7 +106,7 @@ static int on_call(call_type call)
 }
 
 
-int embedjson_error(const char* position)
+int embedjson_error(embedjson_parser* parser, const char* position)
 {
   return 1;
 }

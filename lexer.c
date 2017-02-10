@@ -8,6 +8,7 @@
 #ifndef EMBEDJSON_AMALGAMATE
 #include "lexer.h"
 #include "common.h"
+#include "parser.h"
 #endif /* EMBEDJSON_AMALGAMATE */
 
 
@@ -238,7 +239,7 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
         } else if ('A' <= *data && *data <= 'F') {
           value = 10 + *data - 'A';
         } else {
-          return embedjson_error(data);
+          return embedjson_error((embedjson_parser*) lexer, data);
         }
         switch(lex.offset) {
           case 0: lex.unicode_cp[0] = value << 4; break;
@@ -298,7 +299,7 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
         } else if ('0' <= *data && *data <= '9') {
           lex.exp_value = *data - '0';
         } else if (*data != '+') {
-          return embedjson_error(data);
+          return embedjson_error((embedjson_parser*) lexer, data);
         }
         lex.state = LEXER_STATE_IN_NUMBER_EXP;
         break;
@@ -325,7 +326,7 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
         break;
       case LEXER_STATE_IN_TRUE:
         if (*data != "true"[lex.offset]) {
-          return embedjson_error(data);
+          return embedjson_error((embedjson_parser*) lexer, data);
         }
         if (++lex.offset > 3) {
           RETURN_IF(embedjson_token(lexer, EMBEDJSON_TOKEN_TRUE));
@@ -334,7 +335,7 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
         break;
       case LEXER_STATE_IN_FALSE:
         if (*data != "false"[lex.offset]) {
-          return embedjson_error(data);
+          return embedjson_error((embedjson_parser*) lexer, data);
         }
         if (++lex.offset > 4) {
           RETURN_IF(embedjson_token(lexer, EMBEDJSON_TOKEN_FALSE));
@@ -343,7 +344,7 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
         break;
       case LEXER_STATE_IN_NULL:
         if (*data != "null"[lex.offset]) {
-          return embedjson_error(data);
+          return embedjson_error((embedjson_parser*) lexer, data);
         }
         if (++lex.offset > 3) {
           RETURN_IF(embedjson_token(lexer, EMBEDJSON_TOKEN_NULL));
@@ -376,7 +377,7 @@ EMBEDJSON_STATIC int embedjson_lexer_finalize(embedjson_lexer* lexer)
     case LEXER_STATE_IN_STRING:
     case LEXER_STATE_IN_STRING_ESCAPE:
     case LEXER_STATE_IN_STRING_UNICODE_ESCAPE:
-      return embedjson_error(NULL);
+      return embedjson_error((embedjson_parser*) lexer, NULL);
     case LEXER_STATE_IN_NUMBER:
       if (lex.minus) {
         lex.int_value = 0 - lex.int_value;
@@ -392,7 +393,7 @@ EMBEDJSON_STATIC int embedjson_lexer_finalize(embedjson_lexer* lexer)
       break;
     }
     case LEXER_STATE_IN_NUMBER_EXP_SIGN:
-      return embedjson_error(NULL);
+      return embedjson_error((embedjson_parser*) lexer, NULL);
     case LEXER_STATE_IN_NUMBER_EXP: {
       double value = lex.frac_value * powm10(lex.frac_power) + lex.int_value;
       value *= powm10(lex.exp_minus ? lex.exp_value : 0 - lex.exp_value);
@@ -405,7 +406,7 @@ EMBEDJSON_STATIC int embedjson_lexer_finalize(embedjson_lexer* lexer)
     case LEXER_STATE_IN_TRUE:
     case LEXER_STATE_IN_FALSE:
     case LEXER_STATE_IN_NULL:
-      return embedjson_error(NULL);
+      return embedjson_error((embedjson_parser*) lexer, NULL);
   }
   return 0;
 }

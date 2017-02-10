@@ -17,5 +17,7 @@
 #endif /* EMBEDJSON_AMALGAMATE */
 
 
-EMBEDJSON_STATIC int embedjson_error(const char* position);
+struct embedjson_parser;
+EMBEDJSON_STATIC int embedjson_error(struct embedjson_parser* parser,
+    const char* position);
 

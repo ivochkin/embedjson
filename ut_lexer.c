@@ -136,7 +136,7 @@ static int on_token(token_info ti)
 }
 
 
-int embedjson_error(const char* position)
+int embedjson_error(struct embedjson_parser* parser, const char* position)
 {
   fail("Lexer error near \"%.*s\"", 4, position);
   return 1;
