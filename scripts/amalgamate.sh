@@ -19,7 +19,7 @@ cat >embedjson.c <<EOT
  *
  * Embedjson revision: $(git rev-parse HEAD)
  * Embedjson version: $(git describe --tags --long)
- * Generated at: $(LC_ALL=en_US.utf8 date --utc)
+ * Generated at: $(LC_ALL=en_US.utf8 date -u)
  *
  */
 
