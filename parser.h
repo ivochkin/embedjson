@@ -23,11 +23,11 @@ typedef struct embedjson_parser {
   embedjson_lexer lexer;
   unsigned char state;
   size_t stack_size;
-#ifdef EMBEDJSON_EXTERNAL_STACK
+#ifdef EMBEDJSON_DYNAMIC_STACK
   char* stack;
   size_t stack_capacity;
 #else
-  char stack[16];
+  char stack[EMBEDJSON_STATIC_STACK_SIZE];
 #endif
 } embedjson_parser;
 
