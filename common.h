@@ -15,8 +15,22 @@
 #define EMBEDJSON_STATIC static
 #endif /* EMBEDJSON_AMALGAMATE */
 
+#ifndef EMBEDJSON_DYNAMIC_STACK
+/**
+ * Enable dynamic parser's stack
+ */
+#define EMBEDJSON_DYNAMIC_STACK 0
+#endif
+
 #ifndef EMBEDJSON_STATIC_STACK_SIZE
 #define EMBEDJSON_STATIC_STACK_SIZE 16
+#endif
+
+#ifndef EMBEDJSON_VALIDATE_UTF8
+/**
+ * Enable UTF-8 strings validation.
+ */
+#define EMBEDJSON_VALIDATE_UTF8 1
 #endif
 
 struct embedjson_parser;

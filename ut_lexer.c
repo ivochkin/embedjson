@@ -34,6 +34,7 @@ typedef enum token_value_type {
 typedef enum additional_token_type {
   EMBEDJSON_TOKEN_STRING_BEGIN = EMBEDJSON_TOKEN_NULL + 1,
   EMBEDJSON_TOKEN_STRING_END,
+  EMBEDJSON_TOKEN_ERROR
 } additional_token_type;
 
 
@@ -70,6 +71,55 @@ static test_case* itest = NULL;
 static data_chunk* idata_chunk = NULL;
 static token_info* itoken = NULL;
 
+static const char* token_type_to_str(int type)
+{
+  switch(type) {
+    case EMBEDJSON_TOKEN_OPEN_CURLY_BRACKET:
+      return "EMBEDJSON_TOKEN_OPEN_CURLY_BRACKET (0)";
+    case EMBEDJSON_TOKEN_CLOSE_CURLY_BRACKET:
+      return "EMBEDJSON_TOKEN_CLOSE_CURLY_BRACKET (1)";
+    case EMBEDJSON_TOKEN_OPEN_BRACKET:
+      return "EMBEDJSON_TOKEN_OPEN_BRACKET (2)";
+    case EMBEDJSON_TOKEN_CLOSE_BRACKET:
+      return "EMBEDJSON_TOKEN_CLOSE_BRACKET (3)";
+    case EMBEDJSON_TOKEN_COMMA:
+      return "EMBEDJSON_TOKEN_COMMA (4)";
+    case EMBEDJSON_TOKEN_COLON:
+      return "EMBEDJSON_TOKEN_COLON (5)";
+    case EMBEDJSON_TOKEN_STRING_CHUNK:
+      return "EMBEDJSON_TOKEN_STRING_CHUNK (6)";
+    case EMBEDJSON_TOKEN_NUMBER:
+      return "EMBEDJSON_TOKEN_NUMBER (7)";
+    case EMBEDJSON_TOKEN_TRUE:
+      return "EMBEDJSON_TOKEN_TRUE (8)";
+    case EMBEDJSON_TOKEN_FALSE:
+      return "EMBEDJSON_TOKEN_FALSE (9)";
+    case EMBEDJSON_TOKEN_NULL:
+      return "EMBEDJSON_TOKEN_NULL (10)";
+    case EMBEDJSON_TOKEN_STRING_BEGIN:
+      return "EMBEDJSON_TOKEN_STRING_BEGIN (11)";
+    case EMBEDJSON_TOKEN_STRING_END:
+      return "EMBEDJSON_TOKEN_STRING_END (12)";
+    case EMBEDJSON_TOKEN_ERROR:
+      return "EMBEDJSON_TOKEN_ERROR (13)";
+    default:
+      return "Unknown token";
+  };
+}
+
+static const char* token_value_type_to_str(token_value_type type)
+{
+  switch(type) {
+    case TOKEN_VALUE_TYPE_INTEGER:
+      return "TOKEN_VALUE_TYPE_INTEGER (0)";
+    case TOKEN_VALUE_TYPE_FP:
+      return "TOKEN_VALUE_TYPE_FP (1)";
+    case TOKEN_VALUE_TYPE_STR:
+      return "TOKEN_VALUE_TYPE_STR (2)";
+    default:
+      return "Unknown token type";
+  }
+}
 
 static void fail(const char* fmt, ...)
 {
@@ -94,14 +144,19 @@ static void fail(const char* fmt, ...)
 static int on_token(token_info ti)
 {
   if (itoken == itest->tokens + itest->ntokens) {
-    fail("Unexpected token of type %d, value type %d", ti.type, ti.value_type);
+    fail("Unexpected token %s, value type %s", token_type_to_str(ti.type),
+        token_value_type_to_str(ti.value_type));
   }
   if (ti.type != itoken->type) {
-    fail("Token type mismatch. Expected %d, got %d", itoken->type, ti.type);
+    fail("Token type mismatch. Expected %s, got %s",
+        token_type_to_str(itoken->type), token_type_to_str(ti.type));
   }
-  if (ti.type == EMBEDJSON_TOKEN_STRING_CHUNK || ti.type == EMBEDJSON_TOKEN_NUMBER) {
+  if (ti.type == EMBEDJSON_TOKEN_STRING_CHUNK
+      || ti.type == EMBEDJSON_TOKEN_NUMBER) {
     if (ti.value_type != itoken->value_type) {
-      fail("Value type mismatch. Expected %d, got %d", itoken->value_type, ti.value_type);
+      fail("Value type mismatch. Expected %d, got %d",
+          token_value_type_to_str(itoken->value_type),
+          token_value_type_to_str(ti.value_type));
     }
     switch(ti.value_type) {
       case TOKEN_VALUE_TYPE_FP:
@@ -135,18 +190,15 @@ static int on_token(token_info ti)
   return 0;
 }
 
-
 int embedjson_error(struct embedjson_parser* parser, const char* position)
 {
-  fail("Lexer error near \"%.*s\"", 4, position);
-  return 1;
+  return on_token((token_info) {.type = EMBEDJSON_TOKEN_ERROR});
 }
 
 int embedjson_token(embedjson_lexer* lexer, embedjson_tok token)
 {
   return on_token((token_info) {.type = token});
 }
-
 
 int embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size)
 {
@@ -438,6 +490,60 @@ static token_info test_10_tokens[] = {
 };
 
 
+/**
+ * test 11
+ *
+ * Unicode Character 'CYRILLIC CAPITAL LETTER ZHE' (U+0416),
+ * with corrupted second byte
+ *
+ * A valid sequence is \xd0\96
+ */
+static char test_11_json[] = "\"\xd0\x16\"";
+static data_chunk test_11_data_chunks[] = {
+  {.data = test_11_json, .size = sizeof(test_11_json) - 1}
+};
+static token_info test_11_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR}
+};
+
+
+/**
+ * test 12
+ *
+ * Unicode Han Character 'right conduct, righteousness' (U+4E49),
+ * with corrupted third byte
+ *
+ * A valid sequence is \xe4\xb9\x89
+ */
+static char test_12_json[] = "\"\xe4\xb9\xc9\"";
+static data_chunk test_12_data_chunks[] = {
+  {.data = test_12_json, .size = sizeof(test_12_json) - 1}
+};
+static token_info test_12_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR}
+};
+
+
+/**
+ * test 13
+ *
+ * Unicode Character 'GOTHIC LETTER AHSA' (U+10330),
+ * with last byte missing
+ *
+ * A valid sequence is \xf0\x90\x8c\xb0
+ */
+static char test_13_json[] = "\"\xf0\x90\x8c\"";
+static data_chunk test_13_data_chunks[] = {
+  {.data = test_13_json, .size = sizeof(test_13_json) - 1}
+};
+static token_info test_13_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR}
+};
+
+
 #define TEST_CASE(n, description) \
 { \
   .name = (description), \
@@ -458,7 +564,10 @@ static test_case all_tests[] = {
   TEST_CASE(07, "ascii escaping"),
   TEST_CASE(08, "unicode escaping"),
   TEST_CASE(09, "double -10.0152+e02"),
-  TEST_CASE(10, "reset state after parsing double, -10.0152e-2 10000.00")
+  TEST_CASE(10, "reset state after parsing double, -10.0152e-2 10000.00"),
+  TEST_CASE(11, "bad second byte in two-byte utf-8 sequence"),
+  TEST_CASE(12, "bad third byte in three-byte utf-8 sequence"),
+  TEST_CASE(13, "missing last byte in four-byte utf-8 sequence")
 };
 
 

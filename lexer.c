@@ -11,7 +11,6 @@
 #include "parser.h"
 #endif /* EMBEDJSON_AMALGAMATE */
 
-
 typedef enum {
   LEXER_STATE_LOOKUP_TOKEN = 0,
   LEXER_STATE_IN_STRING,
@@ -190,19 +189,41 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
         }
         break;
       case LEXER_STATE_IN_STRING:
-        if (*data == '\\') {
-          if (data != string_chunk_begin) {
-            RETURN_IF(embedjson_tokenc(lexer, string_chunk_begin,
-                  data - string_chunk_begin));
+#if EMBEDJSON_VALIDATE_UTF8
+        if (lex.nb) {
+          if (!(*data & 0x80)) {
+            return embedjson_error((embedjson_parser*) lexer, data);
           }
-          lex.state = LEXER_STATE_IN_STRING_ESCAPE;
-        } else if (*data == '"') {
-          if (data != string_chunk_begin) {
-            RETURN_IF(embedjson_tokenc(lexer, string_chunk_begin,
-                  data - string_chunk_begin));
+          lex.nb--;
+        }
+        if ((*data & 0xe0) == 0xc0) {
+          lex.nb = 1;
+        } else if ((*data & 0xf0) == 0xe0) {
+          lex.nb = 2;
+        } else if ((*data & 0xf8) == 0xf0) {
+          lex.nb = 3;
+        } else if ((*data & 0xfc) == 0xf8) {
+          lex.nb = 4;
+        } else if ((*data & 0xfe) == 0xfc) {
+          lex.nb = 5;
+        } else {
+#else
+        {
+#endif
+          if (*data == '\\') {
+            if (data != string_chunk_begin) {
+              RETURN_IF(embedjson_tokenc(lexer, string_chunk_begin,
+                    data - string_chunk_begin));
+            }
+            lex.state = LEXER_STATE_IN_STRING_ESCAPE;
+          } else if (*data == '"') {
+            if (data != string_chunk_begin) {
+              RETURN_IF(embedjson_tokenc(lexer, string_chunk_begin,
+                    data - string_chunk_begin));
+            }
+            embedjson_tokenc_end(lexer);
+            lex.state = LEXER_STATE_LOOKUP_TOKEN;
           }
-          embedjson_tokenc_end(lexer);
-          lex.state = LEXER_STATE_LOOKUP_TOKEN;
         }
         break;
       case LEXER_STATE_IN_STRING_ESCAPE:

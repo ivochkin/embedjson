@@ -52,6 +52,12 @@ typedef struct embedjson_lexer {
   uint64_t frac_value;
   uint16_t frac_power;
   uint16_t exp_value;
+#if EMBEDJSON_VALIDATE_UTF8
+  /**
+   * Number of bytes in the in the unicode sequence
+   */
+  unsigned char nb;
+#endif
 } embedjson_lexer;
 
 /**
