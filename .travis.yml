@@ -20,6 +20,9 @@ matrix:
       apt:
         packages:
         - lcov
+  - os: linux
+    compiler: gcc
+    env: CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Debug -DEMBEDJSON_VALIDATE_UTF8=OFF"
 script:
 - mkdir build
 - pushd build

@@ -4,6 +4,15 @@ project(embedjson C)
 enable_testing()
 link_libraries(m)
 
+set(EMBEDJSON_DYNAMIC_STACK FALSE CACHE BOOL "")
+set(EMBEDJSON_STATIC_STACK_SIZE 16 CACHE STRING "")
+set(EMBEDJSON_VALIDATE_UTF8 TRUE CACHE BOOL "")
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
+  ${CMAKE_CURRENT_BINARY_DIR}/config.h @ONLY)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 add_executable(ut-lexer
   lexer.h
   lexer.c

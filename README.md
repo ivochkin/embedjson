@@ -20,3 +20,4 @@ into the code to configure embedjson:
 - Error handling
 - Unicode validation
 - UTF-16, UTF-32 support
+- amalgamate.sh test

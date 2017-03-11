@@ -18,6 +18,7 @@
 
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\x1b[32m"
+#define ANSI_COLOR_YELLOW "\x1b[33m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 
 
@@ -59,6 +60,7 @@ typedef struct data_chunk {
 
 
 typedef struct test_case {
+  int enabled;
   const char* name;
   size_t nchunks;
   data_chunk* data_chunks;
@@ -546,12 +548,28 @@ static token_info test_13_tokens[] = {
 
 #define TEST_CASE(n, description) \
 { \
+  .enabled = 1, \
   .name = (description), \
   .nchunks = SIZEOF((test_##n##_data_chunks)), \
   .data_chunks = (test_##n##_data_chunks), \
   .ntokens = SIZEOF((test_##n##_tokens)), \
-  .tokens = (test_##n##_tokens)\
+  .tokens = (test_##n##_tokens) \
 }
+
+
+#if EMBEDJSON_VALIDATE_UTF8
+#define TEST_CASE_IF_VALIDATE_UTF8(n, description) TEST_CASE(n, description)
+#else
+#define TEST_CASE_IF_VALIDATE_UTF8(n, description) \
+{ \
+  .enabled = 0, \
+  .name = (description), \
+  .nchunks = SIZEOF((test_##n##_data_chunks)), \
+  .data_chunks = (test_##n##_data_chunks), \
+  .ntokens = SIZEOF((test_##n##_tokens)), \
+  .tokens = (test_##n##_tokens) \
+}
+#endif
 
 
 static test_case all_tests[] = {
@@ -565,9 +583,9 @@ static test_case all_tests[] = {
   TEST_CASE(08, "unicode escaping"),
   TEST_CASE(09, "double -10.0152+e02"),
   TEST_CASE(10, "reset state after parsing double, -10.0152e-2 10000.00"),
-  TEST_CASE(11, "bad second byte in two-byte utf-8 sequence"),
-  TEST_CASE(12, "bad third byte in three-byte utf-8 sequence"),
-  TEST_CASE(13, "missing last byte in four-byte utf-8 sequence")
+  TEST_CASE_IF_VALIDATE_UTF8(11, "bad second byte in two-byte utf-8 sequence"),
+  TEST_CASE_IF_VALIDATE_UTF8(12, "bad third byte in three-byte utf-8 sequence"),
+  TEST_CASE_IF_VALIDATE_UTF8(13, "missing last byte in four-byte utf-8 sequence")
 };
 
 
@@ -578,11 +596,15 @@ int main()
   int counter_width = 1 + (int) floor(log10(ntests));
   for (i = 0; i < ntests; ++i) {
     itest = all_tests + i;
+    printf("[%*d/%d] Run test \"%s\" ... ", counter_width, (int) i + 1,
+        (int) ntests, itest->name);
+    if (!itest->enabled) {
+      printf(ANSI_COLOR_YELLOW "SKIPPED" ANSI_COLOR_RESET "\n");
+      continue;
+    }
     itoken = itest->tokens;
     embedjson_lexer lexer;
     memset(&lexer, 0, sizeof(lexer));
-    printf("[%*d/%d] Run test \"%s\" ... ", counter_width, (int) i + 1,
-        (int) ntests, itest->name);
     for (j = 0; j < itest->nchunks; ++j) {
       idata_chunk = itest->data_chunks + j;
       embedjson_lexer_push(&lexer, idata_chunk->data, idata_chunk->size);

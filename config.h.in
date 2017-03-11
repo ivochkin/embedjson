@@ -1,0 +1,12 @@
+/**
+ * @copyright
+ * Copyright (c) 2017 Stanislav Ivochkin
+ *
+ * Licensed under the MIT License (see LICENSE)
+ */
+
+#pragma once
+
+#cmakedefine01 EMBEDJSON_DYNAMIC_STACK
+#define EMBEDJSON_STATIC_STACK_SIZE @EMBEDJSON_STATIC_STACK_SIZE@
+#cmakedefine01 EMBEDJSON_VALIDATE_UTF8

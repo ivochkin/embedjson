@@ -7,6 +7,7 @@
 
 #ifndef EMBEDJSON_AMALGAMATE
 #pragma once
+#include "config.h"
 #endif /* EMBEDJSON_AMALGAMATE */
 
 #ifndef EMBEDJSON_AMALGAMATE

@@ -54,7 +54,7 @@ typedef struct embedjson_lexer {
   uint16_t exp_value;
 #if EMBEDJSON_VALIDATE_UTF8
   /**
-   * Number of bytes in the in the unicode sequence
+   * Number of bytes remaining to complete multibyte UTF-8 sequence
    */
   unsigned char nb;
 #endif
