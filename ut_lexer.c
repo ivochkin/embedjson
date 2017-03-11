@@ -546,6 +546,22 @@ static token_info test_13_tokens[] = {
 };
 
 
+/**
+ * test 14
+ *
+ * Malformed UTF-8 sequence, that extends UTF-8 encoding principles for 5 byte
+ * sequence. However, 5 byte UTF-8 sequences do not exist.
+ */
+static char test_14_json[] = "\"\xfb\x80\x80\x80\x80\"";
+static data_chunk test_14_data_chunks[] = {
+  {.data = test_14_json, .size = sizeof(test_14_json) - 1}
+};
+static token_info test_14_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR}
+};
+
+
 #define TEST_CASE(n, description) \
 { \
   .enabled = 1, \
@@ -585,7 +601,9 @@ static test_case all_tests[] = {
   TEST_CASE(10, "reset state after parsing double, -10.0152e-2 10000.00"),
   TEST_CASE_IF_VALIDATE_UTF8(11, "bad second byte in two-byte utf-8 sequence"),
   TEST_CASE_IF_VALIDATE_UTF8(12, "bad third byte in three-byte utf-8 sequence"),
-  TEST_CASE_IF_VALIDATE_UTF8(13, "missing last byte in four-byte utf-8 sequence")
+  TEST_CASE_IF_VALIDATE_UTF8(13,
+      "missing last byte in four-byte utf-8 sequence"),
+  TEST_CASE_IF_VALIDATE_UTF8(14, "5 byte utf-8 sequence")
 };
 
 

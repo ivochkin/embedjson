@@ -202,10 +202,14 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
           lex.nb = 2;
         } else if ((*data & 0xf8) == 0xf0) {
           lex.nb = 3;
-        } else if ((*data & 0xfc) == 0xf8) {
-          lex.nb = 4;
-        } else if ((*data & 0xfe) == 0xfc) {
-          lex.nb = 5;
+        } else if ((*data & 0xf8) == 0xf8) {
+          /**
+           * According to RFC 3629 "UTF-8, a transformation format of ISO 10646"
+           * maximum length of the UTF-8 byte sequence is 4.
+           *
+           * See RFC 3629 Section 3 and Section 4 for details.
+           */
+          return embedjson_error((embedjson_parser*) lexer, data);
         } else {
 #else
         {
