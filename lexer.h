@@ -57,6 +57,27 @@ typedef struct embedjson_lexer {
    * Number of bytes remaining to complete multibyte UTF-8 sequence
    */
   unsigned char nb;
+  /**
+   * Corner cases for shortest possible UTF-8 encoding issue.
+   *
+   * See http://www.unicode.org/versions/corrigendum1.html for detailed
+   * explanation of the issue and provided solution.
+   *
+   * Possible values are:
+   *
+   * @li 1 - for code points U+0800..U+0FFF. For these code points three bytes
+   * are needed for encoding. If the first byte value is \xe0 (11100000), then
+   * allowed values for the second byte are not \x80..\xbf, but \xa0..\xbf.
+   *
+   * @li 2 - for code points U+10000..U+3FFFF. For these code points four bytes
+   * are needed for encoding. If the first byte value is \xf0 (11110000), then
+   * allowed values for the second byte are not \x80..\xbf, but \x90..\xbf.
+   *
+   * @li 3 - for code points U+100000..U+10FFFF. If the first byte value
+   * is \xf4, then allowed values for the second byte are not \x80..\xbf,
+   * but \x80..\x8f.
+   */
+  unsigned char cc;
 #endif
 } embedjson_lexer;
 

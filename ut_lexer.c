@@ -194,7 +194,14 @@ static int on_token(token_info ti)
 
 int embedjson_error(struct embedjson_parser* parser, const char* position)
 {
-  return on_token((token_info) {.type = EMBEDJSON_TOKEN_ERROR});
+  return on_token((token_info) {
+      .type = EMBEDJSON_TOKEN_ERROR,
+      .value_type = TOKEN_VALUE_TYPE_STR,
+      .value = {
+        .str = {.data = position, .size = 0}
+      }
+    }
+  );
 }
 
 int embedjson_token(embedjson_lexer* lexer, embedjson_tok token)
@@ -562,6 +569,51 @@ static token_info test_14_tokens[] = {
 };
 
 
+/**
+ * test 15
+ *
+ * Non-shortest UTF-8 form, corner case 1 (see lexer.h for description)
+ */
+static char test_15_json[] = "\"\xe0\x80\x85\"";
+static data_chunk test_15_data_chunks[] = {
+  {.data = test_15_json, .size = sizeof(test_15_json) - 1}
+};
+static token_info test_15_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR}
+};
+
+
+/**
+ * test 16
+ *
+ * Non-shortest UTF-8 form, corner case 2 (see lexer.h for description)
+ */
+static char test_16_json[] = "\"\xf0\x8f\x80\x80\"";
+static data_chunk test_16_data_chunks[] = {
+  {.data = test_16_json, .size = sizeof(test_16_json) - 1}
+};
+static token_info test_16_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR}
+};
+
+
+/**
+ * test 17
+ *
+ * Non-shortest UTF-8 form, corner case 3 (see lexer.h for description)
+ */
+static char test_17_json[] = "\"\xf4\xbf\x80\x80\"";
+static data_chunk test_17_data_chunks[] = {
+  {.data = test_17_json, .size = sizeof(test_17_json) - 1}
+};
+static token_info test_17_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR}
+};
+
+
 #define TEST_CASE(n, description) \
 { \
   .enabled = 1, \
@@ -603,7 +655,10 @@ static test_case all_tests[] = {
   TEST_CASE_IF_VALIDATE_UTF8(12, "bad third byte in three-byte utf-8 sequence"),
   TEST_CASE_IF_VALIDATE_UTF8(13,
       "missing last byte in four-byte utf-8 sequence"),
-  TEST_CASE_IF_VALIDATE_UTF8(14, "5 byte utf-8 sequence")
+  TEST_CASE_IF_VALIDATE_UTF8(14, "5 byte utf-8 sequence"),
+  TEST_CASE_IF_VALIDATE_UTF8(15, "UTF-8 non-shortest form, case 1"),
+  TEST_CASE_IF_VALIDATE_UTF8(16, "UTF-8 non-shortest form, case 2"),
+  TEST_CASE_IF_VALIDATE_UTF8(17, "UTF-8 non-shortest form, case 3")
 };
 
 

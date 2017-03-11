@@ -191,7 +191,48 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
       case LEXER_STATE_IN_STRING:
 #if EMBEDJSON_VALIDATE_UTF8
         if (lex.nb) {
-          if (!(*data & 0x80)) {
+          if (lex.nb == 2 && lex.cc == 1) {
+            /*
+             * '\xa0' <= *data <= '\xbf'
+             * Or, in binary representation:
+             * b10100000 <= *data <= b10111111
+             * Therefore, *data & b11100000 should be equal to b10100000
+             */
+            if ((*data & 0xe0) != 0xa0) {
+              return embedjson_error((embedjson_parser*) lexer, data);
+            }
+            lex.cc = 0;
+          } else if (lex.nb == 3) {
+            if (lex.cc == 2) {
+              /*
+               * '\x90' <= *data <= '\xbf'
+               * Or, in binary representation:
+               * b10010000 <= *data <= b10111111
+               * Therefore, *data & b11010000 should be equal to b10010000
+               */
+              if ((*data & 0xd0) != 0x90) {
+                return embedjson_error((embedjson_parser*) lexer, data);
+              }
+              lex.cc = 0;
+            } else if (lex.cc == 3) {
+              /*
+               * '\x80' <= *data <= '\x8f'
+               * Or, in binary representation:
+               * b10000000 <= *data <= b10001111
+               * Therefore, *data & b11110000 should be equal to b10000000
+               */
+              if ((*data & 0xf0) != 0x80) {
+                return embedjson_error((embedjson_parser*) lexer, data);
+              }
+              lex.cc = 0;
+            }
+          } else if ((*data & 0xc0) != 0x80) {
+            /*
+             * '\x80' <= *data <= '\xbf'
+             * Or, in binary representation:
+             * b10000000 <= *data <= b10111111
+             * Therefore, *data & b11000000 should be equal to b10000000
+             */
             return embedjson_error((embedjson_parser*) lexer, data);
           }
           lex.nb--;
@@ -199,8 +240,16 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
         if ((*data & 0xe0) == 0xc0) {
           lex.nb = 1;
         } else if ((*data & 0xf0) == 0xe0) {
+          if (*data == '\xe0') {
+            lex.cc = 1;
+          }
           lex.nb = 2;
         } else if ((*data & 0xf8) == 0xf0) {
+          if (*data == '\xf0') {
+            lex.cc = 2;
+          } else if (*data == '\xf4') {
+            lex.cc = 3;
+          }
           lex.nb = 3;
         } else if ((*data & 0xf8) == 0xf8) {
           /**
