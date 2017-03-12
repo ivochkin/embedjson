@@ -274,7 +274,7 @@ static char test_06_json[] = "[1.0e+10, -9.1, 10]";
 static data_chunk test_06_data_chunks[] = {
   {.data = test_06_json, .size = 3},
   {.data = test_06_json + 3, .size = 12},
-  {.data = test_06_json + 15, SIZEOF(test_06_json) - 1}
+  {.data = test_06_json + 15, SIZEOF(test_06_json) - 16}
 };
 static call_type test_06_calls[] = {
   CALL_BEGIN_ARRAY,
