@@ -479,7 +479,7 @@ static token_info test_09_tokens[] = {
 
 
 /* test 10 */
-static char test_10_json[] = "-10.0152e-2 10000.00";
+static char test_10_json[] = "-10.0152e-2 10000.00 +99.0000001";
 static data_chunk test_10_data_chunks[] = {
   {.data = test_10_json, .size = 6},
   {.data = test_10_json + 6, .size = 9},
@@ -495,6 +495,11 @@ static token_info test_10_tokens[] = {
     .type = EMBEDJSON_TOKEN_NUMBER,
     .value_type = TOKEN_VALUE_TYPE_FP,
     .value = {.fp = 10000. }
+  },
+  {
+    .type = EMBEDJSON_TOKEN_NUMBER,
+    .value_type = TOKEN_VALUE_TYPE_FP,
+    .value = {.fp = 99.0000001 }
   }
 };
 
