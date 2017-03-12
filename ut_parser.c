@@ -268,6 +268,23 @@ static call_type test_05_calls[] = {
   CALL_END_ARRAY
 };
 
+
+/* test 06 */
+static char test_06_json[] = "[1.0e+10, -9.1, 10]";
+static data_chunk test_06_data_chunks[] = {
+  {.data = test_06_json, .size = 3},
+  {.data = test_06_json + 3, .size = 12},
+  {.data = test_06_json + 15, SIZEOF(test_06_json) - 1}
+};
+static call_type test_06_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_DOUBLE,
+  CALL_DOUBLE,
+  CALL_INT,
+  CALL_END_ARRAY
+};
+
+
 #define TEST_CASE(n, description) \
 { \
   .name = (description), \
@@ -283,7 +300,8 @@ static test_case all_tests[] = {
   TEST_CASE(02, "array with nested object"),
   TEST_CASE(03, "three nesting levels"),
   TEST_CASE(04, "empty array"),
-  TEST_CASE(05, "nested empty arrays and objects")
+  TEST_CASE(05, "nested empty arrays and objects"),
+  TEST_CASE(06, "array of three integers [1.0e+10, -9.1, 10]")
 };
 
 
