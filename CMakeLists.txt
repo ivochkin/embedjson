@@ -37,6 +37,25 @@ add_executable(ut-parser
   ut_parser.c
 )
 
+add_custom_command(
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/embedjson.c"
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/scripts/amalgamate.sh"
+    ${CMAKE_CURRENT_SOURCE_DIR}
+  DEPENDS lexer.h lexer.c parser.c parser.h LICENSE
+)
+add_custom_target(amalgamate
+  DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/embedjson.c"
+)
+
+add_executable(embedjson-parse
+  embedjson_parse.c
+)
+add_dependencies(embedjson-parse amalgamate)
+
 enable_testing()
 add_test(NAME lexer COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ut-lexer)
 add_test(NAME parser COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ut-parser)
+add_test(NAME embedjson-parse
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/tests/run.sh"
+    "${CMAKE_CURRENT_BINARY_DIR}/embedjson-parse"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/cases")

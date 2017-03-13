@@ -37,5 +37,4 @@ into the code to configure embedjson:
 ## TODO
 - Error handling
 - UTF-16, UTF-32 support
-- amalgamate.sh test
 - Remove libc dependency

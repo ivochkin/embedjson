@@ -34,7 +34,7 @@
 #define EMBEDJSON_VALIDATE_UTF8 1
 #endif
 
-struct embedjson_parser;
-EMBEDJSON_STATIC int embedjson_error(struct embedjson_parser* parser,
+typedef struct embedjson_parser embedjson_parser;
+EMBEDJSON_STATIC int embedjson_error(embedjson_parser* parser,
     const char* position);
 

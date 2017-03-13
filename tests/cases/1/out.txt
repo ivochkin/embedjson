@@ -1,0 +1,12 @@
+begin object
+begin string
+string f
+string o
+string o
+end string
+begin string
+string b
+string a
+string r
+end string
+end object

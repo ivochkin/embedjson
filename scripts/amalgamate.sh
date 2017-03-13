@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 
-cat >embedjson.c <<EOT
+if [ $1 ]; then
+  embedjson_root="$1"
+else
+  embedjson_root="$(pwd)"
+fi
+
+# Output directory
+out="$(pwd)"
+
+pushd $embedjson_root >/dev/null
+
+cat >$out/embedjson.c <<EOT
 /**
  * This is an amalgamated version of the embedjson library.
  *
@@ -28,16 +39,16 @@ cat >embedjson.c <<EOT
 
 EOT
 
-cat LICENSE >> embedjson.c
+cat LICENSE >> $out/embedjson.c
 
-cat >> embedjson.c <<EOT
+cat >> $out/embedjson.c <<EOT
  */
 
 #define EMBEDJSON_AMALGAMATE
 
 EOT
-cat common.h | tail -n +7 >> embedjson.c
-cat lexer.h | tail -n +7 >> embedjson.c
-cat lexer.c | tail -n +7 >> embedjson.c
-cat parser.h | tail -n +7 >> embedjson.c
-cat parser.c | tail -n +7 >> embedjson.c
+cat common.h | tail -n +7 >> $out/embedjson.c
+cat lexer.h | tail -n +7 >> $out/embedjson.c
+cat lexer.c | tail -n +7 >> $out/embedjson.c
+cat parser.h | tail -n +7 >> $out/embedjson.c
+cat parser.c | tail -n +7 >> $out/embedjson.c
