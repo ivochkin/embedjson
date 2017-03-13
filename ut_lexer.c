@@ -274,7 +274,7 @@ static data_chunk test_02_data_chunks[] = {
   {.data = test_02_json + 7, .size = SIZEOF(test_02_json) - 8}
 };
 static token_info test_02_tokens[] = {
-  { .type = EMBEDJSON_TOKEN_STRING_BEGIN },
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
   {
     .type = EMBEDJSON_TOKEN_STRING_CHUNK,
     .value_type = TOKEN_VALUE_TYPE_STR,
@@ -285,7 +285,7 @@ static token_info test_02_tokens[] = {
     .value_type = TOKEN_VALUE_TYPE_STR,
     .value = {.str = {.data = " world", .size = 6}}
   },
-  { .type = EMBEDJSON_TOKEN_STRING_END }
+  {.type = EMBEDJSON_TOKEN_STRING_END}
 };
 
 
@@ -364,13 +364,13 @@ static data_chunk test_06_data_chunks[] = {
   {.data = test_06_json, .size = SIZEOF(test_06_json) - 1}
 };
 static token_info test_06_tokens[] = {
-  { .type = EMBEDJSON_TOKEN_STRING_BEGIN },
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
   {
     .type = EMBEDJSON_TOKEN_STRING_CHUNK,
     .value_type = TOKEN_VALUE_TYPE_STR,
     .value = {.str = {.data = test_06_json + 1, .size = SIZEOF(test_06_json) - 3}}
   },
-  { .type = EMBEDJSON_TOKEN_STRING_END }
+  {.type = EMBEDJSON_TOKEN_STRING_END}
 };
 
 
@@ -383,7 +383,7 @@ static data_chunk test_07_data_chunks[] = {
   {.data = test_07_json + 12, .size = SIZEOF(test_07_json) - 13}
 };
 static token_info test_07_tokens[] = {
-  { .type = EMBEDJSON_TOKEN_STRING_BEGIN },
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
   {
     .type = EMBEDJSON_TOKEN_STRING_CHUNK,
     .value_type = TOKEN_VALUE_TYPE_STR,
@@ -414,7 +414,7 @@ static token_info test_07_tokens[] = {
     .value_type = TOKEN_VALUE_TYPE_STR,
     .value = {.str = {.data = "\"", .size = 1}}
   },
-  { .type = EMBEDJSON_TOKEN_STRING_END }
+  {.type = EMBEDJSON_TOKEN_STRING_END}
 };
 
 
@@ -429,7 +429,7 @@ static data_chunk test_08_data_chunks[] = {
   {.data = test_08_json + 31, .size = SIZEOF(test_08_json) - 32},
 };
 static token_info test_08_tokens[] = {
-  { .type = EMBEDJSON_TOKEN_STRING_BEGIN },
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
   {
     .type = EMBEDJSON_TOKEN_STRING_CHUNK,
     .value_type = TOKEN_VALUE_TYPE_STR,
@@ -460,7 +460,7 @@ static token_info test_08_tokens[] = {
     .value_type = TOKEN_VALUE_TYPE_STR,
     .value = {.str = {.data = "т", .size = 2}}
   },
-  { .type = EMBEDJSON_TOKEN_STRING_END }
+  {.type = EMBEDJSON_TOKEN_STRING_END}
 };
 
 
@@ -618,6 +618,28 @@ static token_info test_17_tokens[] = {
   {.type = EMBEDJSON_TOKEN_ERROR}
 };
 
+/**
+ * test 18
+ *
+ * Null character '\u0000' within string. Null character is a valid unicode
+ * symbol and can occur in any place of the string. It breaks ASCII convention
+ * that zero bytes indicates end of the string.
+ */
+static char test_18_json[] = "\"Hello,\x00world\" null";
+static data_chunk test_18_data_chunks[] = {
+  {.data = test_18_json, .size = sizeof(test_18_json) - 1}
+};
+static token_info test_18_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {
+    .type = EMBEDJSON_TOKEN_STRING_CHUNK,
+    .value_type = TOKEN_VALUE_TYPE_STR,
+    .value = {.str = {.data = "Hello,\x00world", .size = 12}}
+  },
+  {.type = EMBEDJSON_TOKEN_STRING_END},
+  {.type = EMBEDJSON_TOKEN_NULL}
+};
+
 
 #define TEST_CASE(n, description) \
 { \
@@ -663,7 +685,8 @@ static test_case all_tests[] = {
   TEST_CASE_IF_VALIDATE_UTF8(14, "5 byte utf-8 sequence"),
   TEST_CASE_IF_VALIDATE_UTF8(15, "UTF-8 non-shortest form, case 1"),
   TEST_CASE_IF_VALIDATE_UTF8(16, "UTF-8 non-shortest form, case 2"),
-  TEST_CASE_IF_VALIDATE_UTF8(17, "UTF-8 non-shortest form, case 3")
+  TEST_CASE_IF_VALIDATE_UTF8(17, "UTF-8 non-shortest form, case 3"),
+  TEST_CASE(18, "Null character within UTF-8 string")
 };
 
 
