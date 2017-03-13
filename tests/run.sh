@@ -5,7 +5,7 @@ cases_dir="$2"
 
 for i in $cases_dir/*; do
   echo -n "Run test $i ... "
-  tmpfile=/tmp/$(uuidgen)
+  tmpfile=/tmp/embedjson.$RANDOM
   cat "$i/in.json" | $embedjson_parse > $tmpfile
   [[ $? != 0 ]] && exit 1
   if [ "$(cat $tmpfile)" == "$(cat $i/out.txt)" ]; then
