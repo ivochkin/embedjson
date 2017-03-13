@@ -49,6 +49,6 @@ cat >> $out/embedjson.c <<EOT
 EOT
 cat common.h | tail -n +7 >> $out/embedjson.c
 cat lexer.h | tail -n +7 >> $out/embedjson.c
-cat lexer.c | tail -n +7 >> $out/embedjson.c
 cat parser.h | tail -n +7 >> $out/embedjson.c
+cat lexer.c | tail -n +7 >> $out/embedjson.c
 cat parser.c | tail -n +7 >> $out/embedjson.c
