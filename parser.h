@@ -46,3 +46,19 @@ EMBEDJSON_STATIC int embedjson_object_end(embedjson_parser* parser);
 EMBEDJSON_STATIC int embedjson_array_begin(embedjson_parser* parser);
 EMBEDJSON_STATIC int embedjson_array_end(embedjson_parser* parser);
 
+#if EMBEDJSON_DYNAMIC_STACK
+/**
+ * Called from embedjson_push, when parser's stack is full and more space
+ * is needed.
+ *
+ * Implementation is expected to:
+ * @li allocate new stack of size more than parser.stack_size bytes,
+ * @li copy old stack's content into the new stack,
+ * @li re-initialize parser.stack and parser.stack_size properties,
+ * @li return 0 on success.
+ *
+ * Non-zero return code indicates that error has occured and parsing is aborted.
+ */
+EMBEDJSON_STATIC int embedjson_stack_overflow(embedjson_parser* parser);
+#endif
+

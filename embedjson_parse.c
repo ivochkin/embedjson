@@ -79,6 +79,19 @@ static int embedjson_array_end(embedjson_parser* parser)
   return 0;
 }
 
+#if EMBEDJSON_DYNAMIC_STACK
+static int embedjson_stack_overflow(embedjson_parser* parser)
+{
+  char* new_stack = realloc(parser->stack, 2 * parser->stack_capacity + 1);
+  if (!new_stack) {
+    return -1;
+  }
+  parser->stack = new_stack;
+  parser->stack_capacity = 2 * parser->stack_capacity + 1;
+  return 0;
+}
+#endif
+
 int main()
 {
   embedjson_parser parser;

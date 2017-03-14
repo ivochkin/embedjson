@@ -179,6 +179,20 @@ int embedjson_array_end(embedjson_parser* parser)
 }
 
 
+#if EMBEDJSON_DYNAMIC_STACK
+int embedjson_stack_overflow(embedjson_parser* parser)
+{
+  char* new_stack = realloc(parser->stack, 2 * parser->stack_capacity + 1);
+  if (!new_stack) {
+    return -1;
+  }
+  parser->stack = new_stack;
+  parser->stack_capacity = 2 * parser->stack_capacity + 1;
+  return 0;
+}
+#endif
+
+
 /* test 01 */
 static char test_01_json[] = "{}";
 static data_chunk test_01_data_chunks[] = {

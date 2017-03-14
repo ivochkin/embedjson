@@ -29,7 +29,7 @@ typedef enum {
 } parser_stack_value;
 
 
-#ifdef EMBEDJSON_EXTERNAL_STACK
+#if EMBEDJSON_DYNAMIC_STACK
 #define STACK_CAPACITY(p) (p)->stack_capacity
 #else
 #define STACK_CAPACITY(p) sizeof((p)->stack)
@@ -47,12 +47,12 @@ do { \
 } while (0)
 #endif
 
-
+/* zero[i] contains a byte of all bits set to one except the i-th*/
 static unsigned char zero[] = {
   0xFE, 0xFD, 0xFB, 0xF7, 0xEF, 0xDF, 0xBF, 0x7F
 };
 
-
+/* one[i] contains a byte of all bits set to zero except the i-th*/
 static unsigned char one[] = {
   0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80
 };
@@ -61,7 +61,11 @@ static unsigned char one[] = {
 static int stack_push(embedjson_parser* parser, unsigned char value)
 {
   if (parser->stack_size == 8 * sizeof(char) * STACK_CAPACITY(parser)) {
+#if EMBEDJSON_DYNAMIC_STACK
+    RETURN_IF(embedjson_stack_overflow(parser));
+#else
     return embedjson_error(parser, 0);
+#endif
   }
   embedjson_size_t nbucket = parser->stack_size / 8;
   embedjson_size_t nbit = parser->stack_size % 8;
