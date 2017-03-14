@@ -72,7 +72,7 @@ static int embedjson_error(struct embedjson_parser* parser, const char* position
 static int embedjson_null(embedjson_parser* parser)
 {
   // Place here the code that handles incoming "null" value.
-  // The same logic applies to other embedjson_* functions as well.
+  // The same logic applies to other embedjson_* functions.
   return 0;
 }
 static int embedjson_bool(embedjson_parser* parser, char value) { return 0; }
@@ -102,3 +102,5 @@ One more example of how to intergrate embedjson into the application can be foun
 - Error handling
 - UTF-16, UTF-32 support
 - bignums (integers with values above 64 bits)
+- Integrate https://github.com/nst/JSONTestSuite
+- 95+% test coverage
