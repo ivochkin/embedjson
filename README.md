@@ -21,21 +21,84 @@ Take a look at those brilliant projects if you need a generic JSON library:
 
 ## Features
 
+* No dependencies. Even libc is not needed
+* No memory allocations. Embedjson can be configured to use externally managed dynamic stack
 * UTF-8 validation, including [UTF-8 Shortest Form](http://www.unicode.org/versions/corrigendum1.html)
-* No external dependencies - even libc is not needed
 
 ## Configuring embedjson
 
-A set of `#define` definitions can be specified *before* embedding embedjson.c
-into the code to configure embedjson:
+A set of `#define` directives can be specified *before* inlining embedjson.c
+into the code to configure it:
 
 | Name                        | Default   | Description
 |:--------------------------- |:--------- |:--------------------------------
-| EMBEDJSON_DYNAMIC_STACK     | 0         | Define to enable dynamic stack to hold parser's state. When dynamic stack is enabled, user is responsible for initializing `embedjson_parser.stack` and `embedjson_parser.stack_size` properties . By default static stack of the fixed size is used.
+| EMBEDJSON_DYNAMIC_STACK     | 0         | Define to enable dynamic stack to hold parser's state. When dynamic stack is enabled, user is responsible for initializing `embedjson_parser.stack` and `embedjson_parser.stack_size` properties . By default static stack of the fixed size is used.<br/>Note: when EMBEDJSON_DYNAMIC_STACK is enabled, one have to provide `embedjson_stack_overflow` function implementation in addition to regular parsing events handlers.
 | EMBEDJSON_STATIC_STACK_SIZE | 16        | Size (in bytes) of the stack. Size of the stack determines maximum supported objects/arrays nesting level.
 | EMBEDJSON_VALIDATE_UTF8     | 1         | Enable UTF-8 validation
 | EMBEDJSON_SIZE_T            | guessed   | A type to use where `size_t` is needed. By default, `unsigned long` or `unsigned long long` are used, depending on the target architecture
 
+## Usage guide
+
+Run `scripts/amalgamate.sh` to generate `embedjson.c`.
+Inline `embedjson.c` into your code and provide an implementation for the following functions:
+
+* `int embedjson_error(struct embedjson_parser* parser, const char* position);`
+* `int embedjson_null(embedjson_parser* parser);`
+* `int embedjson_bool(embedjson_parser* parser, char value);`
+* `int embedjson_int(embedjson_parser* parser, long long value);`
+* `int embedjson_double(embedjson_parser* parser, double value);`
+* `int embedjson_string_begin(embedjson_parser* parser);`
+* `int embedjson_string_chunk(embedjson_parser* parser, const char* data, embedjson_size_t size);`
+* `int embedjson_string_end(embedjson_parser* parser);`
+* `int embedjson_object_begin(embedjson_parser* parser);`
+* `int embedjson_object_end(embedjson_parser* parser);`
+* `int embedjson_array_begin(embedjson_parser* parser);`
+* `int embedjson_array_end(embedjson_parser* parser);`
+* `int embedjson_stack_overflow(embedjson_parser* parser);` (Only if `EMBEDJSON_DYNAMIC_STACK` is enabled)
+
+Finally you'll end up with a source file similar to this:
+
+```c
+// json_document_verifier.c
+#include <string.h> /* for memset */
+
+#define EMBEDJSON_DYNAMIC_STACK 0
+#include <embedjson.c>
+
+static int embedjson_error(struct embedjson_parser* parser, const char* position)
+{
+  return 1;
+}
+static int embedjson_null(embedjson_parser* parser)
+{
+  // Place here the code that handles incoming "null" value.
+  // The same logic applies to other embedjson_* functions as well.
+  return 0;
+}
+static int embedjson_bool(embedjson_parser* parser, char value) { return 0; }
+static int embedjson_int(embedjson_parser* parser, long long value) { return 0; }
+static int embedjson_double(embedjson_parser* parser, double value) { return 0; }
+static int embedjson_string_begin(embedjson_parser* parser) { return 0; }
+static int embedjson_string_chunk(embedjson_parser* parser,
+    const char* data, embedjson_size_t size) { return 0; }
+static int embedjson_string_end(embedjson_parser* parser) { return 0; }
+static int embedjson_object_begin(embedjson_parser* parser) { return 0; }
+static int embedjson_object_end(embedjson_parser* parser) { return 0; }
+static int embedjson_array_begin(embedjson_parser* parser) { return 0; }
+static int embedjson_array_end(embedjson_parser* parser) { return 0; }
+
+int main()
+{
+  char json[] = "{\"some\": \"json\", \"object\": true}";
+  embedjson_parser parser;
+  memset(&parser, 0, sizeof(parser));
+  return embedjson_push(&parser, json, sizeof(json) - 1);
+}
+```
+
+One more example of how to intergrate embedjson into the application can be found in `embedjson_parse.c`.
+
 ## TODO
 - Error handling
 - UTF-16, UTF-32 support
+- bignums (integers with values above 64 bits)
