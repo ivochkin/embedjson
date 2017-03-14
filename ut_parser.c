@@ -124,7 +124,7 @@ int embedjson_bool(embedjson_parser* parser, char value)
 }
 
 
-int embedjson_int(embedjson_parser* parser, int64_t value)
+int embedjson_int(embedjson_parser* parser, long long value)
 {
   return on_call(CALL_INT);
 }
@@ -142,7 +142,8 @@ int embedjson_string_begin(embedjson_parser* parser)
 }
 
 
-int embedjson_string_chunk(embedjson_parser* parser, const char* data, size_t size)
+int embedjson_string_chunk(embedjson_parser* parser, const char* data,
+    embedjson_size_t size)
 {
   return on_call(CALL_STRING_CHUNK);
 }

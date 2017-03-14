@@ -43,7 +43,7 @@ typedef struct token_info {
   int type;
   token_value_type value_type;
   union {
-    int64_t integer;
+    long long integer;
     double fp;
     struct {
       const char* data;
@@ -209,7 +209,8 @@ int embedjson_token(embedjson_lexer* lexer, embedjson_tok token)
   return on_token((token_info) {.type = token});
 }
 
-int embedjson_tokenc(embedjson_lexer* lexer, const char* data, size_t size)
+int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
+    embedjson_size_t size)
 {
   return on_token((token_info) {
       .type = EMBEDJSON_TOKEN_STRING_CHUNK,
@@ -234,7 +235,7 @@ int embedjson_tokenc_end(embedjson_lexer* lexer)
 }
 
 
-int embedjson_tokeni(embedjson_lexer* lexer, int64_t value)
+int embedjson_tokeni(embedjson_lexer* lexer, long long value)
 {
   return on_token((token_info) {
       .type = EMBEDJSON_TOKEN_NUMBER,

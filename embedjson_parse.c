@@ -24,9 +24,9 @@ static int embedjson_bool(embedjson_parser* parser, char value)
   return 0;
 }
 
-static int embedjson_int(embedjson_parser* parser, int64_t value)
+static int embedjson_int(embedjson_parser* parser, long long value)
 {
-  printf("int %llu\n", (long long) value);
+  printf("int %llu\n", value);
   return 0;
 }
 
@@ -43,7 +43,7 @@ static int embedjson_string_begin(embedjson_parser* parser)
 }
 
 static int embedjson_string_chunk(embedjson_parser* parser,
-    const char* data, size_t size)
+    const char* data, embedjson_size_t size)
 {
   printf("string %.*s\n", (int) size, data);
   return 0;

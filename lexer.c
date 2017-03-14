@@ -42,7 +42,7 @@ do { \
  * memcmp implementation taken from musl:
  * http://git.musl-libc.org/cgit/musl/tree/src/string/memcmp.c
  */
-static int embedjson_memcmp(const void *vl, const void *vr, size_t n)
+static int embedjson_memcmp(const void *vl, const void *vr, embedjson_size_t n)
 {
   const unsigned char* l = (const unsigned char*) vl,
         *r = (const unsigned char*) vr;
@@ -142,11 +142,11 @@ static double powm10(int n)
 
 
 EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
-    const char* data, size_t size)
+    const char* data, embedjson_size_t size)
 {
   embedjson_lexer lex = *lexer;
   const char* string_chunk_begin =
-    (lex.state == LEXER_STATE_IN_STRING) ? data : NULL;
+    (lex.state == LEXER_STATE_IN_STRING) ? data : 0;
   const char* end = data + size;
   for (; data != end; ++data) {
     switch(lex.state) {
@@ -451,7 +451,7 @@ EMBEDJSON_STATIC int embedjson_lexer_finalize(embedjson_lexer* lexer)
     case LEXER_STATE_IN_STRING:
     case LEXER_STATE_IN_STRING_ESCAPE:
     case LEXER_STATE_IN_STRING_UNICODE_ESCAPE:
-      return embedjson_error((embedjson_parser*) lexer, NULL);
+      return embedjson_error((embedjson_parser*) lexer, 0);
     case LEXER_STATE_IN_NUMBER:
       if (lex.minus) {
         lex.int_value = 0 - lex.int_value;
@@ -467,7 +467,7 @@ EMBEDJSON_STATIC int embedjson_lexer_finalize(embedjson_lexer* lexer)
       break;
     }
     case LEXER_STATE_IN_NUMBER_EXP_SIGN:
-      return embedjson_error((embedjson_parser*) lexer, NULL);
+      return embedjson_error((embedjson_parser*) lexer, 0);
     case LEXER_STATE_IN_NUMBER_EXP: {
       double value = lex.frac_value * powm10(lex.frac_power) + lex.int_value;
       value *= powm10(lex.exp_minus ? lex.exp_value : 0 - lex.exp_value);
@@ -480,7 +480,7 @@ EMBEDJSON_STATIC int embedjson_lexer_finalize(embedjson_lexer* lexer)
     case LEXER_STATE_IN_TRUE:
     case LEXER_STATE_IN_FALSE:
     case LEXER_STATE_IN_NULL:
-      return embedjson_error((embedjson_parser*) lexer, NULL);
+      return embedjson_error((embedjson_parser*) lexer, 0);
   }
   return 0;
 }

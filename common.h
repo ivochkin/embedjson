@@ -34,6 +34,22 @@
 #define EMBEDJSON_VALIDATE_UTF8 1
 #endif
 
+#ifndef EMBEDJSON_SIZE_T
+#if defined(__i386__)
+typedef unsigned long embedjson_size_t;
+#elif defined(__x86_64__)
+typedef unsigned long long embedjson_size_t;
+#else
+/*
+ * Please report a bug at https://github.com/ivochkin/embedjson/issues/new
+ * if an error below is triggered in your environment
+ */
+#error Unsupported architecture.
+#endif
+#else
+typedef EMBEDJSON_SIZE_T embedjson_size_t;
+#endif
+
 struct embedjson_parser;
 EMBEDJSON_STATIC int embedjson_error(struct embedjson_parser* parser,
     const char* position);

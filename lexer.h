@@ -7,10 +7,6 @@
 
 #ifndef EMBEDJSON_AMALGAMATE
 #pragma once
-#endif /* EMBEDJSON_AMALGAMATE */
-#include <stdint.h> /* for int64_t */
-#include <stddef.h> /* for size_t */
-#ifndef EMBEDJSON_AMALGAMATE
 #include "common.h"
 #endif /* EMBEDJSON_AMALGAMATE */
 
@@ -48,10 +44,10 @@ typedef struct embedjson_lexer {
   char unicode_cp[2];
   char minus : 1;
   char exp_minus : 1;
-  int64_t int_value;
-  uint64_t frac_value;
-  uint16_t frac_power;
-  uint16_t exp_value;
+  long long int_value;
+  unsigned long long frac_value;
+  unsigned short frac_power;
+  unsigned short exp_value;
 #if EMBEDJSON_VALIDATE_UTF8
   /**
    * Number of bytes remaining to complete multibyte UTF-8 sequence
@@ -115,7 +111,7 @@ typedef enum {
  * @note If error occurs, lexer state remain unchanged
  */
 EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
-    const char* data, size_t size);
+    const char* data, embedjson_size_t size);
 
 /**
  * Called by embedjson_finalize to indicate that all data has been submitted to
@@ -151,7 +147,7 @@ EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
  * provided to the callback
  */
 EMBEDJSON_STATIC int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
-    size_t size);
+    embedjson_size_t size);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
@@ -159,7 +155,7 @@ EMBEDJSON_STATIC int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
  *
  * @see embedjson_tokenf
  */
-EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, int64_t value);
+EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, long long value);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
