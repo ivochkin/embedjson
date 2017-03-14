@@ -199,7 +199,8 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
              * Therefore, *data & b11100000 should be equal to b10100000
              */
             if ((*data & 0xe0) != 0xa0) {
-              return embedjson_error((embedjson_parser*) lexer, data);
+              return embedjson_error_ex((embedjson_parser*) lexer,
+                  EMBEDJSON_BAD_UTF8, data);
             }
             lex.cc = 0;
           } else if (lex.nb == 3) {
@@ -211,7 +212,8 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
                * Therefore, *data & b11010000 should be equal to b10010000
                */
               if ((*data & 0xd0) != 0x90) {
-                return embedjson_error((embedjson_parser*) lexer, data);
+                return embedjson_error_ex((embedjson_parser*) lexer,
+                    EMBEDJSON_BAD_UTF8, data);
               }
               lex.cc = 0;
             } else if (lex.cc == 3) {
@@ -222,7 +224,8 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
                * Therefore, *data & b11110000 should be equal to b10000000
                */
               if ((*data & 0xf0) != 0x80) {
-                return embedjson_error((embedjson_parser*) lexer, data);
+                return embedjson_error_ex((embedjson_parser*) lexer,
+                    EMBEDJSON_BAD_UTF8, data);
               }
               lex.cc = 0;
             }
@@ -233,7 +236,8 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
              * b10000000 <= *data <= b10111111
              * Therefore, *data & b11000000 should be equal to b10000000
              */
-            return embedjson_error((embedjson_parser*) lexer, data);
+            return embedjson_error_ex((embedjson_parser*) lexer,
+                EMBEDJSON_BAD_UTF8, data);
           }
           lex.nb--;
         }
@@ -258,7 +262,8 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
            *
            * See RFC 3629 Section 3 and Section 4 for details.
            */
-          return embedjson_error((embedjson_parser*) lexer, data);
+          return embedjson_error_ex((embedjson_parser*) lexer,
+              EMBEDJSON_UTF8_TOO_LONG, data);
         } else {
 #else
         {
@@ -313,7 +318,8 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
         } else if ('A' <= *data && *data <= 'F') {
           value = 10 + *data - 'A';
         } else {
-          return embedjson_error((embedjson_parser*) lexer, data);
+          return embedjson_error_ex((embedjson_parser*) lexer,
+              EMBEDJSON_BAD_UNICODE_ESCAPE, data);
         }
         switch(lex.offset) {
           case 0: lex.unicode_cp[0] = value << 4; break;
@@ -373,7 +379,8 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
         } else if ('0' <= *data && *data <= '9') {
           lex.exp_value = *data - '0';
         } else if (*data != '+') {
-          return embedjson_error((embedjson_parser*) lexer, data);
+          return embedjson_error_ex((embedjson_parser*) lexer,
+              EMBEDJSON_BAD_EXPONENT, data);
         }
         lex.state = LEXER_STATE_IN_NUMBER_EXP;
         break;
@@ -400,7 +407,8 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
         break;
       case LEXER_STATE_IN_TRUE:
         if (*data != "true"[lex.offset]) {
-          return embedjson_error((embedjson_parser*) lexer, data);
+          return embedjson_error_ex((embedjson_parser*) lexer,
+              EMBEDJSON_BAD_TRUE, data);
         }
         if (++lex.offset > 3) {
           RETURN_IF(embedjson_token(lexer, EMBEDJSON_TOKEN_TRUE, data));
@@ -409,7 +417,8 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
         break;
       case LEXER_STATE_IN_FALSE:
         if (*data != "false"[lex.offset]) {
-          return embedjson_error((embedjson_parser*) lexer, data);
+          return embedjson_error_ex((embedjson_parser*) lexer,
+              EMBEDJSON_BAD_FALSE, data);
         }
         if (++lex.offset > 4) {
           RETURN_IF(embedjson_token(lexer, EMBEDJSON_TOKEN_FALSE, data));
@@ -418,7 +427,8 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
         break;
       case LEXER_STATE_IN_NULL:
         if (*data != "null"[lex.offset]) {
-          return embedjson_error((embedjson_parser*) lexer, data);
+          return embedjson_error_ex((embedjson_parser*) lexer,
+              EMBEDJSON_BAD_NULL, data);
         }
         if (++lex.offset > 3) {
           RETURN_IF(embedjson_token(lexer, EMBEDJSON_TOKEN_NULL, data));
@@ -451,7 +461,8 @@ EMBEDJSON_STATIC int embedjson_lexer_finalize(embedjson_lexer* lexer)
     case LEXER_STATE_IN_STRING:
     case LEXER_STATE_IN_STRING_ESCAPE:
     case LEXER_STATE_IN_STRING_UNICODE_ESCAPE:
-      return embedjson_error((embedjson_parser*) lexer, 0);
+      return embedjson_error_ex((embedjson_parser*) lexer,
+          EMBEDJSON_EOF_IN_STRING, 0);
     case LEXER_STATE_IN_NUMBER:
       if (lex.minus) {
         lex.int_value = 0 - lex.int_value;
@@ -467,7 +478,8 @@ EMBEDJSON_STATIC int embedjson_lexer_finalize(embedjson_lexer* lexer)
       break;
     }
     case LEXER_STATE_IN_NUMBER_EXP_SIGN:
-      return embedjson_error((embedjson_parser*) lexer, 0);
+      return embedjson_error_ex((embedjson_parser*) lexer,
+          EMBEDJSON_EOF_IN_EXPONENT, 0);
     case LEXER_STATE_IN_NUMBER_EXP: {
       double value = lex.frac_value * powm10(lex.frac_power) + lex.int_value;
       value *= powm10(lex.exp_minus ? lex.exp_value : 0 - lex.exp_value);
@@ -478,9 +490,14 @@ EMBEDJSON_STATIC int embedjson_lexer_finalize(embedjson_lexer* lexer)
       break;
     }
     case LEXER_STATE_IN_TRUE:
+      return embedjson_error_ex((embedjson_parser*) lexer,
+          EMBEDJSON_EOF_IN_TRUE, 0);
     case LEXER_STATE_IN_FALSE:
+      return embedjson_error_ex((embedjson_parser*) lexer,
+          EMBEDJSON_EOF_IN_FALSE, 0);
     case LEXER_STATE_IN_NULL:
-      return embedjson_error((embedjson_parser*) lexer, 0);
+      return embedjson_error_ex((embedjson_parser*) lexer,
+          EMBEDJSON_EOF_IN_NULL, 0);
   }
   return 0;
 }

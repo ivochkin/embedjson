@@ -24,12 +24,16 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 link_libraries(m)
 
 add_executable(ut-lexer
+  common.h
+  common.c
   lexer.h
   lexer.c
   ut_lexer.c
 )
 
 add_executable(ut-parser
+  common.h
+  common.c
   lexer.h
   lexer.c
   parser.h
@@ -41,7 +45,7 @@ add_custom_command(
   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/embedjson.c"
   COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/scripts/amalgamate.sh"
     ${CMAKE_CURRENT_SOURCE_DIR}
-  DEPENDS lexer.h lexer.c parser.c parser.h LICENSE
+  DEPENDS common.h common.c lexer.h lexer.c parser.c parser.h LICENSE
 )
 add_custom_target(amalgamate
   DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/embedjson.c"
