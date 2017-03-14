@@ -34,7 +34,7 @@ into the code to configure embedjson:
 | EMBEDJSON_DYNAMIC_STACK     | 0         | Define to enable dynamic stack to hold parser's state. When dynamic stack is enabled, user is responsible for initializing `embedjson_parser.stack` and `embedjson_parser.stack_size` properties . By default static stack of the fixed size is used.
 | EMBEDJSON_STATIC_STACK_SIZE | 16        | Size (in bytes) of the stack. Size of the stack determines maximum supported objects/arrays nesting level.
 | EMBEDJSON_VALIDATE_UTF8     | 1         | Enable UTF-8 validation
-| EMBEDJSON_SIZE_T            | guessed   | A type to use where size_t is needed. By default, `unsigned long` or `unsigned long long` is used, depending on the target architecture
+| EMBEDJSON_SIZE_T            | guessed   | A type to use where `size_t` is needed. By default, `unsigned long` or `unsigned long long` are used, depending on the target architecture
 
 ## TODO
 - Error handling
