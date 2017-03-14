@@ -112,7 +112,8 @@ EMBEDJSON_STATIC int embedjson_finalize(embedjson_parser* parser)
 }
 
 
-EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer, embedjson_tok token)
+EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
+    embedjson_tok token, const char* position)
 {
   /*
    * See doc/syntax-parser-fsm.dot for the explanation what's
@@ -343,7 +344,8 @@ EMBEDJSON_STATIC int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
 }
 
 
-EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, long long value)
+EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, long long value,
+    const char* position)
 {
   embedjson_parser* parser = (embedjson_parser*)(lexer);
   switch (parser->state) {
@@ -373,7 +375,8 @@ EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, long long value)
 }
 
 
-EMBEDJSON_STATIC int embedjson_tokenf(embedjson_lexer* lexer, double value)
+EMBEDJSON_STATIC int embedjson_tokenf(embedjson_lexer* lexer, double value,
+    const char* position)
 {
   embedjson_parser* parser = (embedjson_parser*)(lexer);
   switch (parser->state) {
@@ -403,7 +406,8 @@ EMBEDJSON_STATIC int embedjson_tokenf(embedjson_lexer* lexer, double value)
 }
 
 
-EMBEDJSON_STATIC int embedjson_tokenc_begin(embedjson_lexer* lexer)
+EMBEDJSON_STATIC int embedjson_tokenc_begin(embedjson_lexer* lexer,
+    const char* position)
 {
   embedjson_parser* parser = (embedjson_parser*)(lexer);
   embedjson_string_begin(parser);
@@ -411,7 +415,8 @@ EMBEDJSON_STATIC int embedjson_tokenc_begin(embedjson_lexer* lexer)
 }
 
 
-EMBEDJSON_STATIC int embedjson_tokenc_end(embedjson_lexer* lexer)
+EMBEDJSON_STATIC int embedjson_tokenc_end(embedjson_lexer* lexer,
+    const char* position)
 {
   embedjson_parser* parser = (embedjson_parser*)(lexer);
   switch (parser->state) {

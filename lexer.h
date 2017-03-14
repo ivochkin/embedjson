@@ -137,7 +137,7 @@ EMBEDJSON_STATIC int embedjson_lexer_finalize(embedjson_lexer* lexer);
  * - EMBEDJSON_TOKEN_NULL
  */
 EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
-    embedjson_tok token);
+    embedjson_tok token, const char* position);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
@@ -155,7 +155,8 @@ EMBEDJSON_STATIC int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
  *
  * @see embedjson_tokenf
  */
-EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, long long value);
+EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, long long value,
+    const char* position);
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
@@ -163,7 +164,8 @@ EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, long long value);
  *
  * @see embedjson_tokeni
  */
-EMBEDJSON_STATIC int embedjson_tokenf(embedjson_lexer* lexer, double value);
+EMBEDJSON_STATIC int embedjson_tokenf(embedjson_lexer* lexer, double value,
+    const char* position);
 
 /**
  * Called from embedjson_lexer_push when a beginning of the string token is
@@ -171,7 +173,8 @@ EMBEDJSON_STATIC int embedjson_tokenf(embedjson_lexer* lexer, double value);
  *
  * @see embedjson_tokenc, embedjson_tokenc_end
  */
-EMBEDJSON_STATIC int embedjson_tokenc_begin(embedjson_lexer* lexer);
+EMBEDJSON_STATIC int embedjson_tokenc_begin(embedjson_lexer* lexer,
+    const char* position);
 
 /**
  * Called from embedjson_lexer_push when string parsing is complete.
@@ -182,5 +185,6 @@ EMBEDJSON_STATIC int embedjson_tokenc_begin(embedjson_lexer* lexer);
  *
  * @see embedjson_tokenc, embedjson_tokenc_begin
  */
-EMBEDJSON_STATIC int embedjson_tokenc_end(embedjson_lexer* lexer);
+EMBEDJSON_STATIC int embedjson_tokenc_end(embedjson_lexer* lexer,
+    const char* position);
 

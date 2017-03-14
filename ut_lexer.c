@@ -204,7 +204,8 @@ int embedjson_error(struct embedjson_parser* parser, const char* position)
   );
 }
 
-int embedjson_token(embedjson_lexer* lexer, embedjson_tok token)
+int embedjson_token(embedjson_lexer* lexer, embedjson_tok token,
+    const char* position)
 {
   return on_token((token_info) {.type = token});
 }
@@ -223,19 +224,20 @@ int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
 }
 
 
-int embedjson_tokenc_begin(embedjson_lexer* lexer)
+int embedjson_tokenc_begin(embedjson_lexer* lexer, const char* position)
 {
   return on_token((token_info) {.type = EMBEDJSON_TOKEN_STRING_BEGIN});
 }
 
 
-int embedjson_tokenc_end(embedjson_lexer* lexer)
+int embedjson_tokenc_end(embedjson_lexer* lexer, const char* position)
 {
   return on_token((token_info) {.type = EMBEDJSON_TOKEN_STRING_END});
 }
 
 
-int embedjson_tokeni(embedjson_lexer* lexer, long long value)
+int embedjson_tokeni(embedjson_lexer* lexer, long long value,
+    const char* position)
 {
   return on_token((token_info) {
       .type = EMBEDJSON_TOKEN_NUMBER,
@@ -246,7 +248,7 @@ int embedjson_tokeni(embedjson_lexer* lexer, long long value)
 }
 
 
-int embedjson_tokenf(embedjson_lexer* lexer, double value)
+int embedjson_tokenf(embedjson_lexer* lexer, double value, const char* position)
 {
   return on_token((token_info) {
       .type = EMBEDJSON_TOKEN_NUMBER,
