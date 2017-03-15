@@ -51,15 +51,15 @@ add_custom_target(amalgamate
   DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/embedjson.c"
 )
 
-add_executable(embedjson-parse
-  embedjson_parse.c
+add_executable(embedjson-lint
+  embedjson_lint.c
 )
-add_dependencies(embedjson-parse amalgamate)
+add_dependencies(embedjson-lint amalgamate)
 
 enable_testing()
 add_test(NAME lexer COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ut-lexer)
 add_test(NAME parser COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ut-parser)
-add_test(NAME embedjson-parse
+add_test(NAME embedjson-lint
   COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/tests/run.sh"
-    "${CMAKE_CURRENT_BINARY_DIR}/embedjson-parse"
+    "${CMAKE_CURRENT_BINARY_DIR}/embedjson-lint"
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/cases")

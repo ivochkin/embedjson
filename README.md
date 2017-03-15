@@ -59,7 +59,7 @@ Inline `embedjson.c` into your code and provide an implementation for the follow
 Finally you'll end up with a source file similar to this:
 
 ```c
-// json_document_verifier.c
+// main.c
 #include <string.h> /* for memset */
 
 #define EMBEDJSON_DYNAMIC_STACK 0
@@ -96,7 +96,7 @@ int main()
 }
 ```
 
-One more example of how to intergrate embedjson into the application can be found in [embedjson_parse.c](https://github.com/ivochkin/embedjson/blob/master/embedjson_parse.c).
+An example of how to intergrate embedjson into the real-world application can be found in [embedjson_lint.c](https://github.com/ivochkin/embedjson/blob/master/embedjson_lint.c).
 
 ## TODO
 - Error handling
