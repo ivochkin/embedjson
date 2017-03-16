@@ -103,10 +103,14 @@ An example of how to intergrate embedjson into the real-world application can be
 A list of all breaking changes of each major release is accumulated in this section.
 
 ### 3.x (upcoming)
-- Change `embedjson_error` interface. `embedjson_error(embedjson_parser*, const char*)` -> `embedjson_error(embedjson_parser*, embedjson_error_code, const char*)`
+- Change `embedjson_error` interface:
+  ```diff
+  - embedjson_error(embedjson_parser*, const char*)
+  + embedjson_error(embedjson_parser*, embedjson_error_code, const char*)
+  ```
 
 ### 2.x (and prior)
-API changes haven't been tracked for versions prior to 2.x. v2.0.0 should be considered a first stable release.
+API changes haven't been tracked for versions prior to 2.x. Version 2.0.0 should be considered a first stable release.
 
 ## TODO
 - Error handling
