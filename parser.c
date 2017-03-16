@@ -144,9 +144,9 @@ EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
         case EMBEDJSON_TOKEN_COLON:
           return embedjson_error_ex(parser, EMBEDJSON_UNEXP_COLON, position);
         case EMBEDJSON_TOKEN_STRING_CHUNK:
-          return embedjson_error_ex(parser, EMBEDJSON_UNEXP_STRING, position);
+          return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR, position);
         case EMBEDJSON_TOKEN_NUMBER:
-          return embedjson_error_ex(parser, EMBEDJSON_UNEXP_NUMBER, position);
+          return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR, position);
         case EMBEDJSON_TOKEN_TRUE:
           RETURN_IF(embedjson_bool(parser, 1));
           parser->state = PARSER_STATE_DONE;
@@ -167,8 +167,7 @@ EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
       if (token == EMBEDJSON_TOKEN_CLOSE_CURLY_BRACKET) {
         if (stack_empty(parser)
             || stack_top(parser) != STACK_VALUE_CURLY) {
-          return embedjson_error_ex(parser, EMBEDJSON_UNEXP_CLOSE_CURLY,
-              position);
+          return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR, position);
         }
         RETURN_IF(embedjson_object_end(parser));
         stack_pop(parser);
@@ -244,7 +243,7 @@ EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
         case EMBEDJSON_TOKEN_CLOSE_BRACKET:
           if (stack_empty(parser)
               || stack_top(parser) == STACK_VALUE_CURLY) {
-            return embedjson_error_ex(parser, EMBEDJSON_UNEXP_CLOSE_BRACKET,
+            return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR,
                 position);
           }
           RETURN_IF(embedjson_array_end(parser));
@@ -285,8 +284,7 @@ EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
       } else if (token == EMBEDJSON_TOKEN_CLOSE_BRACKET) {
         if (stack_empty(parser)
             || stack_top(parser) == STACK_VALUE_CURLY) {
-          return embedjson_error_ex(parser, EMBEDJSON_UNEXP_CLOSE_BRACKET,
-              position);
+          return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR, position);
         }
         RETURN_IF(embedjson_array_end(parser));
         stack_pop(parser);
@@ -307,8 +305,7 @@ EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
       } else if (token == EMBEDJSON_TOKEN_CLOSE_CURLY_BRACKET) {
         if (stack_empty(parser)
             || stack_top(parser) != STACK_VALUE_CURLY) {
-          return embedjson_error_ex(parser, EMBEDJSON_UNEXP_CLOSE_CURLY,
-              position);
+          return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR, position);
         }
         RETURN_IF(embedjson_object_end(parser));
         stack_pop(parser);

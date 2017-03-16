@@ -263,7 +263,7 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
            * See RFC 3629 Section 3 and Section 4 for details.
            */
           return embedjson_error_ex((embedjson_parser*) lexer,
-              EMBEDJSON_UTF8_TOO_LONG, data);
+              EMBEDJSON_LONG_UTF8, data);
         } else {
 #else
         {

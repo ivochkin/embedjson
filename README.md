@@ -42,7 +42,7 @@ into the code to configure it:
 Run `scripts/amalgamate.sh` to generate `embedjson.c`.
 Inline `embedjson.c` into your code and provide an implementation for the following functions:
 
-* `int embedjson_error(struct embedjson_parser* parser, const char* position);`
+* `int embedjson_error(embedjson_parser* parser, const char* position);`
 * `int embedjson_null(embedjson_parser* parser);`
 * `int embedjson_bool(embedjson_parser* parser, char value);`
 * `int embedjson_int(embedjson_parser* parser, long long value);`
@@ -98,9 +98,20 @@ int main()
 
 An example of how to intergrate embedjson into the real-world application can be found in [embedjson_lint.c](https://github.com/ivochkin/embedjson/blob/master/embedjson_lint.c).
 
+## Breaking changes
+[Semantic versioning](http://semver.org/) is used to label embedjson releases.
+A list of all breaking changes of each major release is accumulated in this section.
+
+### 3.x (upcoming)
+- Change `embedjson_error` interface. `embedjson_error(embedjson_parser*, const char*)` -> `embedjson_error(embedjson_parser*, embedjson_error_code, const char*)`
+
+### 2.x (and prior)
+API changes haven't been tracked for versions prior to 2.x. v2.0.0 should be considered a first stable release.
+
 ## TODO
 - Error handling
 - UTF-16, UTF-32 support
 - bignums (integers with values above 64 bits)
 - Integrate https://github.com/nst/JSONTestSuite
 - 95+% test coverage
+- Ensure unicode escape does not need validation
