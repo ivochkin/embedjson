@@ -21,9 +21,10 @@ Take a look at those brilliant projects if you need a generic JSON library:
 
 ## Features
 
-* No dependencies. Even libc is not needed
-* No memory allocations. Embedjson can be configured to use externally managed dynamic stack
-* UTF-8 validation, including [UTF-8 Shortest Form](http://www.unicode.org/versions/corrigendum1.html)
+* Written in pure C99.
+* No dependencies - even libc is not needed.
+* No memory allocations. Embedjson can be configured to use externally managed dynamic stack.
+* UTF-8 validation, including [UTF-8 Shortest Form](http://www.unicode.org/versions/corrigendum1.html).
 
 ## Configuring embedjson
 
