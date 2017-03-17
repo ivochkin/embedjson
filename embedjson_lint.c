@@ -106,13 +106,13 @@ int main()
   memset(&parser, 0, sizeof(parser));
   while (read(STDIN_FILENO, &ch, 1) > 0) {
     int err = embedjson_push(&parser, &ch, 1);
-    if (err < 0) {
+    if (err) {
       fprintf(stderr, "error parsing json near symbol '%c'\n", *error_position);
       return err;
     }
   }
   int err = embedjson_finalize(&parser);
-  if (err < 0) {
+  if (err) {
     fprintf(stderr, "error parsing json near symbol '%c'\n", *error_position);
   }
   return 0;

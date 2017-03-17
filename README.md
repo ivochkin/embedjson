@@ -114,7 +114,6 @@ A list of all breaking changes of each major release is accumulated in this sect
 API changes haven't been tracked for versions prior to 2.x. Version 2.0.0 should be considered a first stable release.
 
 ## TODO
-- Error handling
 - UTF-16, UTF-32 support
 - bignums (integers with values above 64 bits)
 - Integrate https://github.com/nst/JSONTestSuite
