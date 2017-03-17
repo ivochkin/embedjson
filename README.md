@@ -106,8 +106,8 @@ A list of all breaking changes of each major release is accumulated in this sect
 ### 3.x (upcoming)
 - Change `embedjson_error` interface:
   ```diff
-  - embedjson_error(embedjson_parser*, const char*)
-  + embedjson_error(embedjson_parser*, embedjson_error_code, const char*)
+  - int embedjson_error(embedjson_parser*, const char*)
+  + int embedjson_error(embedjson_parser*, embedjson_error_code, const char*)
   ```
 
 ### 2.x (and prior)
