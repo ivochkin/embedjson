@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 2.8)
 project(embedjson C)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -23,7 +23,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 link_libraries(m)
 
-set(CMAKE_C_STANDARD 99)
+fw_c99()
 
 add_executable(ut-lexer
   common.h
