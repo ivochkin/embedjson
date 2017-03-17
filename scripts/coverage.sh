@@ -11,7 +11,7 @@
 
 lcov --directory . --capture --output-file lcov.info
 lcov --remove lcov.info '*ut_*' --output lcov.info
-lcov --remove lcov.info '*embedjson_parse*' --output lcov.info
+lcov --remove lcov.info '*embedjson_lint*' --output lcov.info
 lcov --remove lcov.info '*build/embedjson.c' --output lcov.info
 
 if [ "$TRAVIS" == "true" ]; then
