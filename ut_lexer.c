@@ -13,7 +13,6 @@
 #include <stdarg.h>
 #include "lexer.h"
 
-
 #define SIZEOF(x) sizeof((x)) / sizeof((x)[0])
 
 #define ANSI_COLOR_RED "\x1b[31m"
@@ -21,9 +20,7 @@
 #define ANSI_COLOR_YELLOW "\x1b[33m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 
-
 typedef unsigned long long ull;
-
 
 typedef enum token_value_type {
   TOKEN_VALUE_TYPE_INTEGER,
@@ -31,13 +28,13 @@ typedef enum token_value_type {
   TOKEN_VALUE_TYPE_STR,
 } token_value_type;
 
-
 typedef enum additional_token_type {
   EMBEDJSON_TOKEN_STRING_BEGIN = EMBEDJSON_TOKEN_NULL + 1,
   EMBEDJSON_TOKEN_STRING_END,
+  EMBEDJSON_TOKEN_NUMBER,
+  EMBEDJSON_TOKEN_STRING_CHUNK,
   EMBEDJSON_TOKEN_ERROR
 } additional_token_type;
-
 
 typedef struct token_info {
   int type;
@@ -52,12 +49,10 @@ typedef struct token_info {
   } value;
 } token_info;
 
-
 typedef struct data_chunk {
   const char* data;
   size_t size;
 } data_chunk;
-
 
 typedef struct test_case {
   int enabled;
@@ -67,7 +62,6 @@ typedef struct test_case {
   size_t ntokens;
   token_info* tokens;
 } test_case;
-
 
 static test_case* itest = NULL;
 static data_chunk* idata_chunk = NULL;
@@ -88,20 +82,20 @@ static const char* token_type_to_str(int type)
       return "EMBEDJSON_TOKEN_COMMA (4)";
     case EMBEDJSON_TOKEN_COLON:
       return "EMBEDJSON_TOKEN_COLON (5)";
-    case EMBEDJSON_TOKEN_STRING_CHUNK:
-      return "EMBEDJSON_TOKEN_STRING_CHUNK (6)";
-    case EMBEDJSON_TOKEN_NUMBER:
-      return "EMBEDJSON_TOKEN_NUMBER (7)";
     case EMBEDJSON_TOKEN_TRUE:
-      return "EMBEDJSON_TOKEN_TRUE (8)";
+      return "EMBEDJSON_TOKEN_TRUE (6)";
     case EMBEDJSON_TOKEN_FALSE:
-      return "EMBEDJSON_TOKEN_FALSE (9)";
+      return "EMBEDJSON_TOKEN_FALSE (7)";
     case EMBEDJSON_TOKEN_NULL:
-      return "EMBEDJSON_TOKEN_NULL (10)";
+      return "EMBEDJSON_TOKEN_NULL (8)";
     case EMBEDJSON_TOKEN_STRING_BEGIN:
-      return "EMBEDJSON_TOKEN_STRING_BEGIN (11)";
+      return "EMBEDJSON_TOKEN_STRING_BEGIN (9)";
     case EMBEDJSON_TOKEN_STRING_END:
-      return "EMBEDJSON_TOKEN_STRING_END (12)";
+      return "EMBEDJSON_TOKEN_STRING_END (10)";
+    case EMBEDJSON_TOKEN_NUMBER:
+      return "EMBEDJSON_TOKEN_NUMBER (11)";
+    case EMBEDJSON_TOKEN_STRING_CHUNK:
+      return "EMBEDJSON_TOKEN_STRING_CHUNK (12)";
     case EMBEDJSON_TOKEN_ERROR:
       return "EMBEDJSON_TOKEN_ERROR (13)";
     default:
@@ -141,7 +135,6 @@ static void fail(const char* fmt, ...)
   va_end(args);
   exit(1);
 }
-
 
 static int on_token(token_info ti)
 {
@@ -223,18 +216,15 @@ int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
   );
 }
 
-
 int embedjson_tokenc_begin(embedjson_lexer* lexer, const char* position)
 {
   return on_token((token_info) {.type = EMBEDJSON_TOKEN_STRING_BEGIN});
 }
 
-
 int embedjson_tokenc_end(embedjson_lexer* lexer, const char* position)
 {
   return on_token((token_info) {.type = EMBEDJSON_TOKEN_STRING_END});
 }
-
 
 int embedjson_tokeni(embedjson_lexer* lexer, long long value,
     const char* position)
@@ -247,7 +237,6 @@ int embedjson_tokeni(embedjson_lexer* lexer, long long value,
   );
 }
 
-
 int embedjson_tokenf(embedjson_lexer* lexer, double value, const char* position)
 {
   return on_token((token_info) {
@@ -258,7 +247,6 @@ int embedjson_tokenf(embedjson_lexer* lexer, double value, const char* position)
   );
 }
 
-
 /* test 01 */
 static char test_01_json[] = "{}";
 static data_chunk test_01_data_chunks[] = {
@@ -268,7 +256,6 @@ static token_info test_01_tokens[] = {
   {.type = EMBEDJSON_TOKEN_OPEN_CURLY_BRACKET},
   {.type = EMBEDJSON_TOKEN_CLOSE_CURLY_BRACKET},
 };
-
 
 /* test 02 */
 static char test_02_json[] = "\"hello, world\"";
@@ -291,7 +278,6 @@ static token_info test_02_tokens[] = {
   {.type = EMBEDJSON_TOKEN_STRING_END}
 };
 
-
 /* test 03 */
 static char test_03_json[] = "true false null";
 static data_chunk test_03_data_chunks[] = {
@@ -304,7 +290,6 @@ static token_info test_03_tokens[] = {
   {.type = EMBEDJSON_TOKEN_FALSE},
   {.type = EMBEDJSON_TOKEN_NULL}
 };
-
 
 /* test 04 */
 static char test_04_json[] = "10 0 -99999";
@@ -332,7 +317,6 @@ static token_info test_04_tokens[] = {
   }
 };
 
-
 /* test 05 */
 static char test_05_json[] = "{}[]:, {\n{\t[ \r ]\b}\f}";
 static data_chunk test_05_data_chunks[] = {
@@ -352,7 +336,6 @@ static token_info test_05_tokens[] = {
   {.type = EMBEDJSON_TOKEN_CLOSE_CURLY_BRACKET},
   {.type = EMBEDJSON_TOKEN_CLOSE_CURLY_BRACKET},
 };
-
 
 /* test 06 */
 static char test_06_json[] = "\""
@@ -375,7 +358,6 @@ static token_info test_06_tokens[] = {
   },
   {.type = EMBEDJSON_TOKEN_STRING_END}
 };
-
 
 /* test 07 */
 static char test_07_json[] = "\"\\r\\n\\t\\b\\f\\\"\"";
@@ -419,7 +401,6 @@ static token_info test_07_tokens[] = {
   },
   {.type = EMBEDJSON_TOKEN_STRING_END}
 };
-
 
 /* test 08 */
 static char test_08_json[] = "\"\\uD0BF\\ud180\\uD0B8\\ud0B2\\uD0b5\\uD182\"";
@@ -466,7 +447,6 @@ static token_info test_08_tokens[] = {
   {.type = EMBEDJSON_TOKEN_STRING_END}
 };
 
-
 /* test 09 */
 static char test_09_json[] = "-10.0152e+02";
 static data_chunk test_09_data_chunks[] = {
@@ -479,7 +459,6 @@ static token_info test_09_tokens[] = {
     .value = {.fp = -1001.52 }
   }
 };
-
 
 /* test 10 */
 static char test_10_json[] = "-10.0152e-2 10000.00 +99.0000001";
@@ -506,7 +485,6 @@ static token_info test_10_tokens[] = {
   }
 };
 
-
 /**
  * test 11
  *
@@ -523,7 +501,6 @@ static token_info test_11_tokens[] = {
   {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
   {.type = EMBEDJSON_TOKEN_ERROR}
 };
-
 
 /**
  * test 12
@@ -542,7 +519,6 @@ static token_info test_12_tokens[] = {
   {.type = EMBEDJSON_TOKEN_ERROR}
 };
 
-
 /**
  * test 13
  *
@@ -560,7 +536,6 @@ static token_info test_13_tokens[] = {
   {.type = EMBEDJSON_TOKEN_ERROR}
 };
 
-
 /**
  * test 14
  *
@@ -576,7 +551,6 @@ static token_info test_14_tokens[] = {
   {.type = EMBEDJSON_TOKEN_ERROR}
 };
 
-
 /**
  * test 15
  *
@@ -591,7 +565,6 @@ static token_info test_15_tokens[] = {
   {.type = EMBEDJSON_TOKEN_ERROR}
 };
 
-
 /**
  * test 16
  *
@@ -605,7 +578,6 @@ static token_info test_16_tokens[] = {
   {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
   {.type = EMBEDJSON_TOKEN_ERROR}
 };
-
 
 /**
  * test 17
@@ -643,6 +615,22 @@ static token_info test_18_tokens[] = {
   {.type = EMBEDJSON_TOKEN_NULL}
 };
 
+/**
+ * test 19
+ *
+ * Test case n_array_extra_comma from the JSONTestSuite
+ */
+static char test_19_json[] = "[\"\",]";
+static data_chunk test_19_data_chunks[] = {
+  {.data = test_19_json, .size = sizeof(test_19_json) - 1}
+};
+static token_info test_19_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_STRING_END},
+  {.type = EMBEDJSON_TOKEN_COMMA},
+  {.type = EMBEDJSON_TOKEN_CLOSE_BRACKET}
+};
 
 #define TEST_CASE(n, description) \
 { \
@@ -653,7 +641,6 @@ static token_info test_18_tokens[] = {
   .ntokens = SIZEOF((test_##n##_tokens)), \
   .tokens = (test_##n##_tokens) \
 }
-
 
 #if EMBEDJSON_VALIDATE_UTF8
 #define TEST_CASE_IF_VALIDATE_UTF8(n, description) TEST_CASE(n, description)
@@ -668,7 +655,6 @@ static token_info test_18_tokens[] = {
   .tokens = (test_##n##_tokens) \
 }
 #endif
-
 
 static test_case all_tests[] = {
   TEST_CASE(01, "empty object"),
@@ -689,9 +675,9 @@ static test_case all_tests[] = {
   TEST_CASE_IF_VALIDATE_UTF8(15, "UTF-8 non-shortest form, case 1"),
   TEST_CASE_IF_VALIDATE_UTF8(16, "UTF-8 non-shortest form, case 2"),
   TEST_CASE_IF_VALIDATE_UTF8(17, "UTF-8 non-shortest form, case 3"),
-  TEST_CASE(18, "Null character within UTF-8 string")
+  TEST_CASE(18, "Null character within UTF-8 string"),
+  TEST_CASE(19, "JSONTestSuite.n_array_extra_comma")
 };
-
 
 int main()
 {

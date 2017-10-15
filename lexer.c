@@ -346,7 +346,6 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
             lex.int_value = 0 - lex.int_value;
           }
           RETURN_IF(embedjson_tokeni(lexer, lex.int_value, data));
-          lex.state = LEXER_STATE_LOOKUP_TOKEN;
           lex.int_value = 0;
           lex.minus = 0;
           lex.state = LEXER_STATE_LOOKUP_TOKEN;

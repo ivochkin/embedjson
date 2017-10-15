@@ -72,6 +72,7 @@ EMBEDJSON_STATIC const char* embedjson_strerror(embedjson_error_code code)
 EMBEDJSON_STATIC int embedjson_error_ex(struct embedjson_parser* parser,
     embedjson_error_code code, const char* position)
 {
+  (void) code;
   return embedjson_error(parser, position);
 }
 

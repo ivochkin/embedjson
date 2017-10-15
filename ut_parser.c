@@ -12,16 +12,14 @@
 #include <stdarg.h>
 #include "parser.h"
 
-
 #define SIZEOF(x) sizeof((x)) / sizeof((x)[0])
+#define MAGIC 0xDEADBEEF
 
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\x1b[32m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 
-
 typedef unsigned long long ull;
-
 
 typedef enum call_type {
   CALL_NULL,
@@ -34,7 +32,8 @@ typedef enum call_type {
   CALL_BEGIN_OBJECT,
   CALL_END_OBJECT,
   CALL_BEGIN_ARRAY,
-  CALL_END_ARRAY
+  CALL_END_ARRAY,
+  CALL_ERROR
 } call_type;
 
 const char* call_type_to_str(call_type ct)
@@ -51,6 +50,7 @@ const char* call_type_to_str(call_type ct)
     case CALL_END_OBJECT: return "CALL_END_OBJECT";
     case CALL_BEGIN_ARRAY: return "CALL_BEGIN_ARRAY";
     case CALL_END_ARRAY: return "CALL_END_ARRAY";
+    case CALL_ERROR: return "CALL_ERROR";
     default: return "CALL_UNKNOWN";
   };
 }
@@ -91,56 +91,48 @@ static void fail(const char* fmt, ...)
   exit(1);
 }
 
-
 static int on_call(call_type call)
 {
   if (icall == itest->calls + itest->ncalls) {
-    fail("Enexpected call of type %d", call);
+    fail("Unexpected call %s (%d)", call_type_to_str(call), call);
   }
   if (call != *icall) {
-    fail("Call type mismatch. Expected %s, got %s",
-        call_type_to_str(*icall), call_type_to_str(call));
+    fail("Call type mismatch. Expected %s (%d), got %s (%d)",
+        call_type_to_str(*icall), *icall, call_type_to_str(call), call);
   }
   icall = icall + 1;
-  return 0;
+  return call == CALL_ERROR ? MAGIC : 0;
 }
-
 
 int embedjson_error(embedjson_parser* parser, const char* position)
 {
-  return 1;
+  return on_call(CALL_ERROR);
 }
-
 
 int embedjson_null(embedjson_parser* parser)
 {
   return on_call(CALL_NULL);
 }
 
-
 int embedjson_bool(embedjson_parser* parser, char value)
 {
   return on_call(CALL_BOOL);
 }
-
 
 int embedjson_int(embedjson_parser* parser, long long value)
 {
   return on_call(CALL_INT);
 }
 
-
 int embedjson_double(embedjson_parser* parser, double value)
 {
   return on_call(CALL_DOUBLE);
 }
 
-
 int embedjson_string_begin(embedjson_parser* parser)
 {
   return on_call(CALL_STRING_BEGIN);
 }
-
 
 int embedjson_string_chunk(embedjson_parser* parser, const char* data,
     embedjson_size_t size)
@@ -148,36 +140,30 @@ int embedjson_string_chunk(embedjson_parser* parser, const char* data,
   return on_call(CALL_STRING_CHUNK);
 }
 
-
 int embedjson_string_end(embedjson_parser* parser)
 {
   return on_call(CALL_STRING_END);
 }
-
 
 int embedjson_object_begin(embedjson_parser* parser)
 {
   return on_call(CALL_BEGIN_OBJECT);
 }
 
-
 int embedjson_object_end(embedjson_parser* parser)
 {
   return on_call(CALL_END_OBJECT);
 }
-
 
 int embedjson_array_begin(embedjson_parser* parser)
 {
   return on_call(CALL_BEGIN_ARRAY);
 }
 
-
 int embedjson_array_end(embedjson_parser* parser)
 {
   return on_call(CALL_END_ARRAY);
 }
-
 
 #if EMBEDJSON_DYNAMIC_STACK
 int embedjson_stack_overflow(embedjson_parser* parser)
@@ -192,7 +178,6 @@ int embedjson_stack_overflow(embedjson_parser* parser)
 }
 #endif
 
-
 /* test 01 */
 static char test_01_json[] = "{}";
 static data_chunk test_01_data_chunks[] = {
@@ -202,7 +187,6 @@ static call_type test_01_calls[] = {
   CALL_BEGIN_OBJECT,
   CALL_END_OBJECT
 };
-
 
 /* test 02 */
 static char test_02_json[] = "[{}, null]";
@@ -216,7 +200,6 @@ static call_type test_02_calls[] = {
   CALL_NULL,
   CALL_END_ARRAY
 };
-
 
 /* test 03 */
 static char test_03_json[] = "{\"a\":{\"b\":true, \"c\":[1, 2]}, \"d\":null}";
@@ -248,7 +231,6 @@ static call_type test_03_calls[] = {
   CALL_END_OBJECT
 };
 
-
 /* test 04 */
 static char test_04_json[] = "[]";
 static data_chunk test_04_data_chunks[] = {
@@ -258,7 +240,6 @@ static call_type test_04_calls[] = {
   CALL_BEGIN_ARRAY,
   CALL_END_ARRAY
 };
-
 
 /* test 05 */
 static char test_05_json[] = "[{}, [], {\"a\":[{ }]}]";
@@ -283,7 +264,6 @@ static call_type test_05_calls[] = {
   CALL_END_ARRAY
 };
 
-
 /* test 06 */
 static char test_06_json[] = "[1.0e+10, -9.1, 10]";
 static data_chunk test_06_data_chunks[] = {
@@ -299,6 +279,17 @@ static call_type test_06_calls[] = {
   CALL_END_ARRAY
 };
 
+/* test 07 */
+static char test_07_json[] = "[\"\",]";
+static data_chunk test_07_data_chunks[] = {
+  {.data = test_07_json, .size = SIZEOF(test_07_json) - 1},
+};
+static call_type test_07_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_STRING_BEGIN,
+  CALL_STRING_END,
+  CALL_ERROR
+};
 
 #define TEST_CASE(n, description) \
 { \
@@ -309,16 +300,15 @@ static call_type test_06_calls[] = {
   .calls = (test_##n##_calls)\
 }
 
-
 static test_case all_tests[] = {
   TEST_CASE(01, "empty object"),
   TEST_CASE(02, "array with nested object"),
   TEST_CASE(03, "three nesting levels"),
   TEST_CASE(04, "empty array"),
   TEST_CASE(05, "nested empty arrays and objects"),
-  TEST_CASE(06, "array of three integers [1.0e+10, -9.1, 10]")
+  TEST_CASE(06, "array of three integers [1.0e+10, -9.1, 10]"),
+  TEST_CASE(07, "JSONTestSuite.n_array_extra_comma")
 };
-
 
 int main()
 {
@@ -336,13 +326,19 @@ int main()
     for (j = 0; j < itest->nchunks; ++j) {
       idata_chunk = itest->data_chunks + j;
       err = embedjson_push(&parser, idata_chunk->data, idata_chunk->size);
-      if (err) {
-        fail("embedjson_push returned non-zero (%d)", err);
+      if (err == MAGIC) {
+        break;
+      } else if (err) {
+        fail("embedjson_push returned unknown error (%d)", err);
       }
     }
-    err = embedjson_finalize(&parser);
-    if (err) {
-      fail("embedjson_finalize returned non-zero (%d)", err);
+    if (!err) {
+      err = embedjson_finalize(&parser);
+      if (err == MAGIC) {
+        break;
+      } else if (err) {
+        fail("embedjson_finalize returned unknown error (%d)", err);
+      }
     }
     if (icall != itest->calls + itest->ncalls) {
       fail("Not enough callback calls. Expected %llu, got %llu",

@@ -24,8 +24,8 @@
  *
  * @note JSON strings are not accumulated by the lexer - only user
  * provided buffers are used to provide string values to the caller.
- * That's why each JSON string value is transformed into a series
- * of EMBEDJSON_TOKEN_STRING_CHUNK tokens.
+ * That's why each JSON string value is transformed into a possibly
+ * empty series of embedjson_tokenc calls.
  *
  * A new string chunk is created each time one of the following events occurs:
  * - a buffer provided for embedjson_lexer_push function is parsed
@@ -87,8 +87,6 @@ typedef enum {
   EMBEDJSON_TOKEN_CLOSE_BRACKET,
   EMBEDJSON_TOKEN_COMMA,
   EMBEDJSON_TOKEN_COLON,
-  EMBEDJSON_TOKEN_STRING_CHUNK,
-  EMBEDJSON_TOKEN_NUMBER,
   EMBEDJSON_TOKEN_TRUE,
   EMBEDJSON_TOKEN_FALSE,
   EMBEDJSON_TOKEN_NULL
@@ -97,7 +95,7 @@ typedef enum {
 /**
  * Called by embedjson_push for each data chunk to parse.
  *
- * Results are returned by calling either by a famile of embedjson_token*
+ * Results are returned by calling a family of embedjson_token*
  * functions:
  * - embedjson_token
  * - embedjson_tokenc
@@ -141,7 +139,7 @@ EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
- * EMBEDJSON_TOKEN_STRING_CHUNK token.
+ * string chunk.
  *
  * A pointer to buffer that contains string chunk data and it's size are
  * provided to the callback
@@ -151,7 +149,7 @@ EMBEDJSON_STATIC int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
- * EMBEDJSON_TOKEN_NUMBER token and it has an integer value.
+ * integer value.
  *
  * @see embedjson_tokenf
  */
@@ -160,7 +158,7 @@ EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, long long value,
 
 /**
  * Called from embedjson_lexer_push for each successfully parsed
- * EMBEDJSON_TOKEN_NUMBER token and it has a floating-point value.
+ * floating-point value.
  *
  * @see embedjson_tokeni
  */

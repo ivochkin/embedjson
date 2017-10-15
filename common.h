@@ -50,6 +50,30 @@ typedef unsigned long long embedjson_size_t;
 typedef EMBEDJSON_SIZE_T embedjson_size_t;
 #endif
 
+#ifndef EMBEDJSON_DEBUG
+/**
+ * Emit debug messages to stdout during parsing
+ */
+#define EMBEDJSON_DEBUG 0
+#endif
+
+#if EMBEDJSON_DEBUG
+#include <string.h>
+#include <stdio.h>
+#define EMBEDJSON_FILENAME (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#define EMBEDJSON_LOG(...) \
+do { \
+  char msg[512] = {0};\
+  int printed;\
+  printed = snprintf(msg, sizeof(msg), "%s (%s:%d) ", __func__, EMBEDJSON_FILENAME, __LINE__);\
+  printed += snprintf(msg + printed , sizeof(msg) - printed, __VA_ARGS__);\
+  printf("%.*s\n", (int) printed, msg);\
+} while (0)
+#else
+#define EMBEDJSON_LOG(...) {}
+#endif
+
+
 typedef enum {
 #if EMBEDJSON_VALIDATE_UTF8
   /** Malformed UTF-8 byte sequence */
@@ -105,7 +129,9 @@ typedef enum {
    */
   EMBEDJSON_STACK_OVERFLOW,
 #endif
-  /** Expected object, array, or primitive value, got closing curly bracket */
+  /** Expected object, array, or primitive value, got closing curly bracket
+   * @todo inspect usage - review doxygen comment
+   */
   EMBEDJSON_UNEXP_CLOSE_CURLY,
   /** Expected object, array, or primitive value, got closing bracket */
   EMBEDJSON_UNEXP_CLOSE_BRACKET,
@@ -115,12 +141,24 @@ typedef enum {
   EMBEDJSON_UNEXP_COLON,
   /** Expected colon following json object's key */
   EMBEDJSON_EXP_COLON,
+  /** Expected string as object key, or close curly bracket */
+  EMBEDJSON_EXP_OBJECT_KEY_OR_CLOSE_CURLY,
+  /** Expected string as object key */
+  EMBEDJSON_EXP_OBJECT_KEY,
   /** Expected object, array, or primitive value for the value of json object */
   EMBEDJSON_EXP_OBJECT_VALUE,
+  /** Expected comma as array values separator, or close bracket */
+  EMBEDJSON_EXP_COMMA_OR_CLOSE_BRACKET,
+  /** Expected comma as object items separator, or close curly bracket */
+  EMBEDJSON_EXP_COMMA_OR_CLOSE_CURLY,
   /** Expected object, array, or primitive value for the value of json array */
   EMBEDJSON_EXP_ARRAY_VALUE,
   /** Expected end-of-stream since JSON parsing is complete */
   EMBEDJSON_EXCESSIVE_INPUT,
+  /**
+   * Not enough data to complete JSON parsing.
+   */
+  EMBEDJSON_INSUFFICIENT_INPUT,
   /**
    * Unexpected error.
    *
