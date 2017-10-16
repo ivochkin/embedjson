@@ -181,7 +181,7 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
           lex.offset = 1;
           lex.state = LEXER_STATE_IN_NULL;
         } else if (*data == '-') {
-          lex.minus = 1;
+          lex.minus |= 1;
           lex.state = LEXER_STATE_IN_NUMBER;
         } else if ('0' <= *data && *data <= '9') {
           lex.int_value = *data - '0';
@@ -374,7 +374,7 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
         break;
       case LEXER_STATE_IN_NUMBER_EXP_SIGN:
         if (*data == '-') {
-          lex.exp_minus = 1;
+          lex.exp_minus |= 1;
         } else if ('0' <= *data && *data <= '9') {
           lex.exp_value = *data - '0';
         } else if (*data != '+') {

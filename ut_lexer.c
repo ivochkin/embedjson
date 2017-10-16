@@ -187,6 +187,7 @@ static int on_token(token_info ti)
 
 int embedjson_error(struct embedjson_parser* parser, const char* position)
 {
+  EMBEDJSON_UNUSED(parser);
   return on_token((token_info) {
       .type = EMBEDJSON_TOKEN_ERROR,
       .value_type = TOKEN_VALUE_TYPE_STR,
@@ -200,12 +201,15 @@ int embedjson_error(struct embedjson_parser* parser, const char* position)
 int embedjson_token(embedjson_lexer* lexer, embedjson_tok token,
     const char* position)
 {
+  EMBEDJSON_UNUSED(lexer);
+  EMBEDJSON_UNUSED(position);
   return on_token((token_info) {.type = token});
 }
 
 int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
     embedjson_size_t size)
 {
+  EMBEDJSON_UNUSED(lexer);
   return on_token((token_info) {
       .type = EMBEDJSON_TOKEN_STRING_CHUNK,
       .value_type = TOKEN_VALUE_TYPE_STR,
@@ -218,17 +222,23 @@ int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
 
 int embedjson_tokenc_begin(embedjson_lexer* lexer, const char* position)
 {
+  EMBEDJSON_UNUSED(lexer);
+  EMBEDJSON_UNUSED(position);
   return on_token((token_info) {.type = EMBEDJSON_TOKEN_STRING_BEGIN});
 }
 
 int embedjson_tokenc_end(embedjson_lexer* lexer, const char* position)
 {
+  EMBEDJSON_UNUSED(lexer);
+  EMBEDJSON_UNUSED(position);
   return on_token((token_info) {.type = EMBEDJSON_TOKEN_STRING_END});
 }
 
 int embedjson_tokeni(embedjson_lexer* lexer, long long value,
     const char* position)
 {
+  EMBEDJSON_UNUSED(lexer);
+  EMBEDJSON_UNUSED(position);
   return on_token((token_info) {
       .type = EMBEDJSON_TOKEN_NUMBER,
       .value_type = TOKEN_VALUE_TYPE_INTEGER,
@@ -239,6 +249,8 @@ int embedjson_tokeni(embedjson_lexer* lexer, long long value,
 
 int embedjson_tokenf(embedjson_lexer* lexer, double value, const char* position)
 {
+  EMBEDJSON_UNUSED(lexer);
+  EMBEDJSON_UNUSED(position);
   return on_token((token_info) {
       .type = EMBEDJSON_TOKEN_NUMBER,
       .value_type = TOKEN_VALUE_TYPE_FP,

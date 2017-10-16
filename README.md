@@ -33,9 +33,9 @@ into the code to configure it:
 
 | Name                        | Default   | Description
 |:--------------------------- |:--------- |:--------------------------------
-| EMBEDJSON_DEBUG             | 0         | Define to enable paranoid self-checking mode. Spotted errors will be reported as EMBEDJSON_INTERNAL_ERROR. Also turns on printing debug messages to stdout. Not recommended for release builds.
-| EMBEDJSON_DYNAMIC_STACK     | 0         | Define to enable dynamic stack to hold parser's state. When dynamic stack is enabled, user is responsible for initializing `embedjson_parser.stack` and `embedjson_parser.stack_size` properties . By default static stack of the fixed size is used.<br/>Note: when EMBEDJSON_DYNAMIC_STACK is enabled, one have to provide `embedjson_stack_overflow` function implementation in addition to regular parsing events handlers.
-| EMBEDJSON_STATIC_STACK_SIZE | 16        | Size (in bytes) of the stack. Size of the stack determines maximum supported objects/arrays nesting level. Each nesting level consumes 1 bit of the stack, so 16 byte stack allows at most 128 nested arrays/object.
+| EMBEDJSON_DEBUG             | 0         | Define to enable paranoid self-checking mode. Spotted errors will be reported as `EMBEDJSON_INTERNAL_ERROR`. Also turns on printing debug messages to stdout.<br/>_Not recommended for release builds._
+| EMBEDJSON_DYNAMIC_STACK     | 0         | Define to enable dynamic stack to hold parser's state. When dynamic stack is enabled, user is responsible for initializing `embedjson_parser.stack` and `embedjson_parser.stack_size` properties . By default static stack of the fixed size is used.<br/>Note: when `EMBEDJSON_DYNAMIC_STACK` is enabled, one have to provide `embedjson_stack_overflow` function implementation in addition to regular parsing events handlers.
+| EMBEDJSON_STATIC_STACK_SIZE | 16        | Size (in bytes) of the stack. Size of the stack determines maximum supported objects/arrays nesting level. Each nesting level consumes 1 bit of the stack, so 16 byte stack allows at most 128 nested objects or arrays.
 | EMBEDJSON_VALIDATE_UTF8     | 1         | Enable UTF-8 validation
 | EMBEDJSON_SIZE_T            | guessed   | A type to use where `size_t` is needed. By default, `unsigned long` or `unsigned long long` are used, depending on the target architecture
 

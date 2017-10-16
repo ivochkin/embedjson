@@ -73,14 +73,19 @@ do { \
 #define EMBEDJSON_LOG(...) {}
 #endif
 
+#define EMBEDJSON_UNUSED(x) (void) (x)
 
 typedef enum {
-#if EMBEDJSON_VALIDATE_UTF8
+  /**
+   * No error
+   *
+   * EMBEDJSON_OK is a fake error value to initialize embedjson_error_type variables.
+   */
+  EMBEDJSON_OK = 0,
   /** Malformed UTF-8 byte sequence */
   EMBEDJSON_BAD_UTF8,
   /** UTF-8 byte sequence more than 4 bytes long */
   EMBEDJSON_LONG_UTF8,
-#endif
   /**
    * Unexpected character in the unicode escape sequence
    *
@@ -121,14 +126,12 @@ typedef enum {
   EMBEDJSON_EOF_IN_FALSE,
   /** Got end-of-stream while parsing "null" keyword */
   EMBEDJSON_EOF_IN_NULL,
-#if !EMBEDJSON_DYNAMIC_STACK
   /**
    * Object/array nesting level is too big
    *
    * Try to increase size of the stack (EMBEDJSON_STATIC_STACK_SIZE).
    */
   EMBEDJSON_STACK_OVERFLOW,
-#endif
   /** Expected object, array, or primitive value, got closing curly bracket
    * @todo inspect usage - review doxygen comment
    */
@@ -147,7 +150,7 @@ typedef enum {
   EMBEDJSON_EXP_OBJECT_KEY,
   /** Expected object, array, or primitive value for the value of json object */
   EMBEDJSON_EXP_OBJECT_VALUE,
-  /** Expected comma as array values separator, or close bracket */
+  /** Expected comma as array values separator, or close square bracket */
   EMBEDJSON_EXP_COMMA_OR_CLOSE_BRACKET,
   /** Expected comma as object items separator, or close curly bracket */
   EMBEDJSON_EXP_COMMA_OR_CLOSE_CURLY,
@@ -169,6 +172,8 @@ typedef enum {
    *
    * Please report a bug at https://github.com/ivochkin/embedjson/issues/new
    * if you receive EMBEDJSON_INTERNAL_ERROR from the embedjson library.
+   *
+   * @note EMBEDJSON_INTERNAL_ERROR should the last enum member
    */
   EMBEDJSON_INTERNAL_ERROR
 } embedjson_error_code;

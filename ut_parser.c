@@ -13,7 +13,7 @@
 #include "parser.h"
 
 #define SIZEOF(x) sizeof((x)) / sizeof((x)[0])
-#define MAGIC 0xDEADBEEF
+#define MAGIC ((int) (0xDEADBEEF))
 
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\x1b[32m"
@@ -106,62 +106,80 @@ static int on_call(call_type call)
 
 int embedjson_error(embedjson_parser* parser, const char* position)
 {
+  EMBEDJSON_UNUSED(parser);
+  EMBEDJSON_UNUSED(position);
   return on_call(CALL_ERROR);
 }
 
 int embedjson_null(embedjson_parser* parser)
 {
+  EMBEDJSON_UNUSED(parser);
   return on_call(CALL_NULL);
 }
 
 int embedjson_bool(embedjson_parser* parser, char value)
 {
+  EMBEDJSON_UNUSED(parser);
+  EMBEDJSON_UNUSED(value);
   return on_call(CALL_BOOL);
 }
 
 int embedjson_int(embedjson_parser* parser, long long value)
 {
+  EMBEDJSON_UNUSED(parser);
+  EMBEDJSON_UNUSED(value);
   return on_call(CALL_INT);
 }
 
 int embedjson_double(embedjson_parser* parser, double value)
 {
+  EMBEDJSON_UNUSED(parser);
+  EMBEDJSON_UNUSED(value);
   return on_call(CALL_DOUBLE);
 }
 
 int embedjson_string_begin(embedjson_parser* parser)
 {
+  EMBEDJSON_UNUSED(parser);
   return on_call(CALL_STRING_BEGIN);
 }
 
 int embedjson_string_chunk(embedjson_parser* parser, const char* data,
     embedjson_size_t size)
 {
+  EMBEDJSON_UNUSED(parser);
+  EMBEDJSON_UNUSED(data);
+  EMBEDJSON_UNUSED(size);
   return on_call(CALL_STRING_CHUNK);
 }
 
 int embedjson_string_end(embedjson_parser* parser)
 {
+  EMBEDJSON_UNUSED(parser);
   return on_call(CALL_STRING_END);
 }
 
 int embedjson_object_begin(embedjson_parser* parser)
 {
+  EMBEDJSON_UNUSED(parser);
   return on_call(CALL_BEGIN_OBJECT);
 }
 
 int embedjson_object_end(embedjson_parser* parser)
 {
+  EMBEDJSON_UNUSED(parser);
   return on_call(CALL_END_OBJECT);
 }
 
 int embedjson_array_begin(embedjson_parser* parser)
 {
+  EMBEDJSON_UNUSED(parser);
   return on_call(CALL_BEGIN_ARRAY);
 }
 
 int embedjson_array_end(embedjson_parser* parser)
 {
+  EMBEDJSON_UNUSED(parser);
   return on_call(CALL_END_ARRAY);
 }
 

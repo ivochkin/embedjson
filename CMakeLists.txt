@@ -24,6 +24,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 link_libraries(m)
 
 fw_c99()
+fw_c_flags("-Wall -Wextra -Wpedantic")
 
 add_executable(ut-lexer
   common.h
@@ -41,6 +42,12 @@ add_executable(ut-parser
   parser.h
   parser.c
   ut_parser.c
+)
+
+add_executable(ut-common
+  common.h
+  common.c
+  ut_common.c
 )
 
 add_custom_command(
@@ -61,6 +68,7 @@ add_dependencies(embedjson-lint amalgamate)
 enable_testing()
 add_test(NAME lexer COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ut-lexer)
 add_test(NAME parser COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ut-parser)
+add_test(NAME common COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ut-common)
 add_test(NAME embedjson-lint
   COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/tests/run.sh"
     "${CMAKE_CURRENT_BINARY_DIR}/embedjson-lint"

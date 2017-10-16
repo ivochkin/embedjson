@@ -503,6 +503,7 @@ EMBEDJSON_STATIC int embedjson_tokenc_end(embedjson_lexer* lexer,
     /* PARSER_STATE_DONE                -> */ PARSER_STATE_INVALID,
   };
   embedjson_parser* parser = (embedjson_parser*) lexer;
+  EMBEDJSON_UNUSED(position);
   EMBEDJSON_CHECK_STATE(parser);
   parser->state = next_state[parser->state];
   EMBEDJSON_CHECK_STATE(parser);
