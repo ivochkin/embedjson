@@ -8,10 +8,18 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <embedjson.c>
 
+/**
+ * Command-line arguments
+ */
 static int verbose = 0;
+static const char* input_file = NULL;
+
 static const char* error_position = NULL;
 static embedjson_error_code error_code = EMBEDJSON_OK;
 
@@ -132,20 +140,28 @@ int main(int argc, char* argv[])
       verbose = 1;
     } else if (!strcmp(argv[i], "--verbose")) {
       verbose = 1;
+    } else {
+      input_file = argv[i];
     }
   }
   memset(&parser, 0, sizeof(parser));
-  while (read(STDIN_FILENO, &ch, 1) > 0) {
+  int fd = STDIN_FILENO;
+  if (input_file) {
+    fd = open(input_file, O_RDONLY);
+  }
+  while (read(fd, &ch, 1) > 0) {
     int err = embedjson_push(&parser, &ch, 1);
     if (err) {
-      fprintf(stderr, "error parsing json near symbol '%c': %s\n", *error_position,
+      fprintf(stderr, "error parsing json near symbol '%c': %s\n",
+          error_position ? *error_position : '?',
           embedjson_strerror(error_code));
       return err;
     }
   }
   int err = embedjson_finalize(&parser);
   if (err) {
-    fprintf(stderr, "error parsing json near symbol '%c': %s\n", *error_position,
+    fprintf(stderr, "error parsing json near symbol '%c': %s\n",
+        error_position ? *error_position : '?',
         embedjson_strerror(error_code));
     return err;
   }
