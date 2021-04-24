@@ -1,6 +1,6 @@
 /**
  * @copyright
- * Copyright (c) 2016-2017 Stanislav Ivochkin
+ * Copyright (c) 2016-2021 Stanislav Ivochkin
  *
  * Licensed under the MIT License (see LICENSE)
  */
@@ -309,6 +309,83 @@ static call_type test_07_calls[] = {
   CALL_ERROR
 };
 
+/* test 08 */
+static char test_08_json[] = "[-]";
+static data_chunk test_08_data_chunks[] = {
+  {.data = test_08_json, .size = SIZEOF(test_08_json) - 1},
+};
+static call_type test_08_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 09 */
+static char test_09_json[] = "[*]";
+static data_chunk test_09_data_chunks[] = {
+  {.data = test_09_json, .size = SIZEOF(test_09_json) - 1},
+};
+static call_type test_09_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 10 */
+static char test_10_json[] = "[.123]";
+static data_chunk test_10_data_chunks[] = {
+  {.data = test_10_json, .size = SIZEOF(test_10_json) - 1},
+};
+static call_type test_10_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 11 */
+static char test_11_json[] = "[012]";
+static data_chunk test_11_data_chunks[] = {
+  {.data = test_11_json, .size = SIZEOF(test_11_json) - 1},
+};
+static call_type test_11_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 12 */
+static char test_12_json[] = "[1]x";
+static data_chunk test_12_data_chunks[] = {
+  {.data = test_12_json, .size = SIZEOF(test_12_json) - 1},
+};
+static call_type test_12_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_INT,
+  CALL_END_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 13 */
+static char test_13_json[] = "2@";
+static data_chunk test_13_data_chunks[] = {
+  {.data = test_13_json, .size = SIZEOF(test_13_json) - 1},
+};
+static call_type test_13_calls[] = {
+  CALL_INT,
+  CALL_ERROR,
+};
+
+/* test 14 */
+static char test_14_json[] = "{\"a\":[]}";
+static data_chunk test_14_data_chunks[] = {
+  {.data = test_14_json, .size = SIZEOF(test_14_json) - 1},
+};
+static call_type test_14_calls[] = {
+  CALL_BEGIN_OBJECT,
+  CALL_STRING_BEGIN,
+  CALL_STRING_CHUNK,
+  CALL_STRING_END,
+  CALL_BEGIN_ARRAY,
+  CALL_END_ARRAY,
+  CALL_END_OBJECT,
+};
+
 #define TEST_CASE(n, description) \
 { \
   .name = (description), \
@@ -325,7 +402,14 @@ static test_case all_tests[] = {
   TEST_CASE(04, "empty array"),
   TEST_CASE(05, "nested empty arrays and objects"),
   TEST_CASE(06, "array of three integers [1.0e+10, -9.1, 10]"),
-  TEST_CASE(07, "JSONTestSuite.n_array_extra_comma")
+  TEST_CASE(07, "JSONTestSuite.n_array_extra_comma"),
+  TEST_CASE(08, "JSONTestSuite.n_array_just_minus"),
+  TEST_CASE(09, "JSONTestSuite.n_array_star_inside"),
+  TEST_CASE(10, "JSONTestSuite.n_number_starting_with_dot"),
+  TEST_CASE(11, "JSONTestSuite.n_number_with_leading_zero"),
+  TEST_CASE(12, "JSONTestSuite.n_structure_array_trailing_garbage"),
+  TEST_CASE(13, "JSONTestSuite.n_structure_number_with_trailing_garbage"),
+  TEST_CASE(14, "JSONTestSuite.y_object_simple"),
 };
 
 int main()

@@ -1,6 +1,6 @@
 /**
  * @copyright
- * Copyright (c) 2017 Stanislav Ivochkin
+ * Copyright (c) 2017-2021 Stanislav Ivochkin
  *
  * Licensed under the MIT License (see LICENSE)
  */
@@ -95,9 +95,16 @@ EMBEDJSON_STATIC const char* embedjson_strerror(embedjson_error_code code)
     case EMBEDJSON_INSUFFICIENT_INPUT:
       return "EMBEDJSON_INSUFFICIENT_INPUT: "
         "Not enough data to complete JSON parsing (26)";
+    case EMBEDJSON_UNEXP_SYMBOL:
+      return "EMBEDJSON_UNEXP_SYMBOL: "
+        "Expected object, array, or primitive value, "
+        "got unexpected symbol (27)";
+    case EMBEDJSON_LEADING_ZERO:
+      return "EMBEDJSON_LEADING_ZERO: "
+        "Got number starting with a leading zero (28)";
     case EMBEDJSON_INTERNAL_ERROR:
       return "EMBEDJSON_INTERNAL_ERROR: "
-        "Unexpected internal error (27). " EMBEDJSON_BUG_REPORT;
+        "Unexpected internal error (29). " EMBEDJSON_BUG_REPORT;
     default:
       return "Unknown error. " EMBEDJSON_BUG_REPORT;
   }

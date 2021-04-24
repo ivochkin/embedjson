@@ -1,6 +1,6 @@
 /**
  * @copyright
- * Copyright (c) 2016-2017 Stanislav Ivochkin
+ * Copyright (c) 2016-2021 Stanislav Ivochkin
  *
  * Licensed under the MIT License (see LICENSE)
  */
@@ -117,10 +117,11 @@ static const char* token_value_type_to_str(token_value_type type)
   }
 }
 
-static void fail(const char* fmt, ...)
+static void fail(const char* position, const char* fmt, ...)
 {
   size_t i;
   printf(ANSI_COLOR_RED "FAILED" ANSI_COLOR_RESET "\n\n");
+  printf("Position: %s\n", position);
   printf("Data chunks:\n");
   for (i = 0; i < itest->nchunks; ++i) {
     data_chunk c = itest->data_chunks[i];
@@ -136,44 +137,44 @@ static void fail(const char* fmt, ...)
   exit(1);
 }
 
-static int on_token(token_info ti)
+static int on_token(token_info ti, const char* position)
 {
   if (itoken == itest->tokens + itest->ntokens) {
-    fail("Unexpected token %s, value type %s", token_type_to_str(ti.type),
+    fail(position, "Unexpected token %s, value type %s", token_type_to_str(ti.type),
         token_value_type_to_str(ti.value_type));
   }
   if (ti.type != itoken->type) {
-    fail("Token type mismatch. Expected %s, got %s",
+    fail(position, "Token type mismatch. Expected %s, got %s",
         token_type_to_str(itoken->type), token_type_to_str(ti.type));
   }
   if (ti.type == EMBEDJSON_TOKEN_STRING_CHUNK
       || ti.type == EMBEDJSON_TOKEN_NUMBER) {
     if (ti.value_type != itoken->value_type) {
-      fail("Value type mismatch. Expected %d, got %d",
+      fail(position, "Value type mismatch. Expected %d, got %d",
           token_value_type_to_str(itoken->value_type),
           token_value_type_to_str(ti.value_type));
     }
     switch(ti.value_type) {
       case TOKEN_VALUE_TYPE_FP:
         if (ti.value.fp != itoken->value.fp) {
-          fail("Floating-point value mismatch. Expected %lf, got %lf",
+          fail(position, "Floating-point value mismatch. Expected %lf, got %lf",
               itoken->value.fp, ti.value.fp);
         }
         break;
       case TOKEN_VALUE_TYPE_STR:
         if (ti.value.str.size != itoken->value.str.size) {
-          fail("String value size mismatch. Expected %llu bytes, got %llu",
+          fail(position, "String value size mismatch. Expected %llu bytes, got %llu",
               (ull) itoken->value.str.size, (ull) ti.value.str.size);
         }
         if (memcmp(ti.value.str.data, itoken->value.str.data, ti.value.str.size)) {
           int size = (int) ti.value.str.size;
-          fail("String value mismatch. Expected \"%.*s\", got \"%.*s\"",
+          fail(position, "String value mismatch. Expected \"%.*s\", got \"%.*s\"",
               size, itoken->value.str.data, size, ti.value.str.data);
         }
         break;
       case TOKEN_VALUE_TYPE_INTEGER:
         if (ti.value.integer != itoken->value.integer) {
-          fail("Integer value mismatch. Expected %lld, got %lld",
+          fail(position, "Integer value mismatch. Expected %lld, got %lld",
               (long long) itoken->value.integer, (long long) ti.value.integer);
         }
         break;
@@ -194,7 +195,8 @@ int embedjson_error(struct embedjson_parser* parser, const char* position)
       .value = {
         .str = {.data = position, .size = 0}
       }
-    }
+    },
+    position
   );
 }
 
@@ -203,7 +205,7 @@ int embedjson_token(embedjson_lexer* lexer, embedjson_tok token,
 {
   EMBEDJSON_UNUSED(lexer);
   EMBEDJSON_UNUSED(position);
-  return on_token((token_info) {.type = token});
+  return on_token((token_info) {.type = token}, position);
 }
 
 int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
@@ -216,7 +218,8 @@ int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
       .value = {
         .str = {.data = data, .size = size}
       }
-    }
+    },
+    data
   );
 }
 
@@ -224,14 +227,14 @@ int embedjson_tokenc_begin(embedjson_lexer* lexer, const char* position)
 {
   EMBEDJSON_UNUSED(lexer);
   EMBEDJSON_UNUSED(position);
-  return on_token((token_info) {.type = EMBEDJSON_TOKEN_STRING_BEGIN});
+  return on_token((token_info) {.type = EMBEDJSON_TOKEN_STRING_BEGIN}, position);
 }
 
 int embedjson_tokenc_end(embedjson_lexer* lexer, const char* position)
 {
   EMBEDJSON_UNUSED(lexer);
   EMBEDJSON_UNUSED(position);
-  return on_token((token_info) {.type = EMBEDJSON_TOKEN_STRING_END});
+  return on_token((token_info) {.type = EMBEDJSON_TOKEN_STRING_END}, position);
 }
 
 int embedjson_tokeni(embedjson_lexer* lexer, long long value,
@@ -243,7 +246,8 @@ int embedjson_tokeni(embedjson_lexer* lexer, long long value,
       .type = EMBEDJSON_TOKEN_NUMBER,
       .value_type = TOKEN_VALUE_TYPE_INTEGER,
       .value = {.integer = value}
-    }
+    },
+    position
   );
 }
 
@@ -255,7 +259,8 @@ int embedjson_tokenf(embedjson_lexer* lexer, double value, const char* position)
       .type = EMBEDJSON_TOKEN_NUMBER,
       .value_type = TOKEN_VALUE_TYPE_FP,
       .value = {.fp = value}
-    }
+    },
+    position
   );
 }
 
@@ -330,7 +335,7 @@ static token_info test_04_tokens[] = {
 };
 
 /* test 05 */
-static char test_05_json[] = "{}[]:, {\n{\t[ \r ]\b}\f}";
+static char test_05_json[] = "{}[]:, {\n{\t[ \r ]\n}\r}";
 static data_chunk test_05_data_chunks[] = {
   {.data = test_05_json, .size = SIZEOF(test_05_json) - 1}
 };
@@ -644,6 +649,44 @@ static token_info test_19_tokens[] = {
   {.type = EMBEDJSON_TOKEN_CLOSE_BRACKET}
 };
 
+/**
+ * test 20
+ *
+ * Test case n_number_with_leading_zero from the JSONTestSuite
+ */
+static char test_20_json[] = "[012]";
+static data_chunk test_20_data_chunks[] = {
+  {.data = test_20_json, .size = sizeof(test_20_json) - 1}
+};
+static token_info test_20_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_ERROR}
+};
+
+/**
+ * test 21
+ *
+ * Test case y_object_simple from the JSONTestSuite
+ */
+static char test_21_json[] = "{\"a\":[]}";
+static data_chunk test_21_data_chunks[] = {
+  {.data = test_21_json, .size = sizeof(test_21_json) - 1}
+};
+static token_info test_21_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_CURLY_BRACKET},
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {
+    .type = EMBEDJSON_TOKEN_STRING_CHUNK,
+    .value_type = TOKEN_VALUE_TYPE_STR,
+    .value = {.str = {.data = "a", .size = 1}},
+  },
+  {.type = EMBEDJSON_TOKEN_STRING_END},
+  {.type = EMBEDJSON_TOKEN_COLON},
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_CLOSE_BRACKET},
+  {.type = EMBEDJSON_TOKEN_CLOSE_CURLY_BRACKET},
+};
+
 #define TEST_CASE(n, description) \
 { \
   .enabled = 1, \
@@ -688,7 +731,9 @@ static test_case all_tests[] = {
   TEST_CASE_IF_VALIDATE_UTF8(16, "UTF-8 non-shortest form, case 2"),
   TEST_CASE_IF_VALIDATE_UTF8(17, "UTF-8 non-shortest form, case 3"),
   TEST_CASE(18, "Null character within UTF-8 string"),
-  TEST_CASE(19, "JSONTestSuite.n_array_extra_comma")
+  TEST_CASE(19, "JSONTestSuite.n_array_extra_comma"),
+  TEST_CASE(20, "JSONTestSuite.n_number_with_leading_zero"),
+  TEST_CASE(21, "JSONTestSuite.y_object_simple"),
 };
 
 int main()
@@ -713,7 +758,7 @@ int main()
     }
     embedjson_lexer_finalize(&lexer);
     if (itoken != itest->tokens + itest->ntokens) {
-      fail("Not enough tokens. Expected %llu, got %llu",
+      fail("EOF", "Not enough tokens. Expected %llu, got %llu",
           (ull) itest->ntokens, (ull) (itoken - itest->tokens));
     }
     printf(ANSI_COLOR_GREEN "OK" ANSI_COLOR_RESET "\n");

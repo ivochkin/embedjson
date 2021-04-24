@@ -1,6 +1,6 @@
 /**
  * @copyright
- * Copyright (c) 2016-2017 Stanislav Ivochkin
+ * Copyright (c) 2016-2021 Stanislav Ivochkin
  *
  * Licensed under the MIT License (see LICENSE)
  */
@@ -16,6 +16,7 @@ typedef enum {
   LEXER_STATE_IN_STRING,
   LEXER_STATE_IN_STRING_ESCAPE,
   LEXER_STATE_IN_STRING_UNICODE_ESCAPE,
+  LEXER_STATE_IN_NUMBER_SIGN,
   LEXER_STATE_IN_NUMBER,
   LEXER_STATE_IN_NUMBER_FRAC,
   LEXER_STATE_IN_NUMBER_EXP_SIGN,
@@ -182,10 +183,15 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
           lex.state = LEXER_STATE_IN_NULL;
         } else if (*data == '-') {
           lex.minus |= 1;
-          lex.state = LEXER_STATE_IN_NUMBER;
+          lex.state = LEXER_STATE_IN_NUMBER_SIGN;
+        } else if (*data == '+') {
+          lex.state = LEXER_STATE_IN_NUMBER_SIGN;
         } else if ('0' <= *data && *data <= '9') {
           lex.int_value = *data - '0';
           lex.state = LEXER_STATE_IN_NUMBER;
+        } else {
+          return embedjson_error_ex((embedjson_parser*) lexer,
+              EMBEDJSON_UNEXP_SYMBOL, data);
         }
         break;
       case LEXER_STATE_IN_STRING:
@@ -335,8 +341,21 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
         lex.offset++;
         break;
       }
+      case LEXER_STATE_IN_NUMBER_SIGN:
+        if ('0' <= *data && *data <= '9') {
+          lex.int_value = 10 * lex.int_value + *data - '0';
+          lex.state = LEXER_STATE_IN_NUMBER;
+        } else {
+          return embedjson_error_ex((embedjson_parser*) lexer,
+              EMBEDJSON_EOF_IN_STRING, data);
+        }
+        break;
       case LEXER_STATE_IN_NUMBER:
         if ('0' <= *data && *data <= '9') {
+          if (!lex.int_value) {
+            return embedjson_error_ex((embedjson_parser*) lexer,
+              EMBEDJSON_LEADING_ZERO, data);
+          }
           lex.int_value = 10 * lex.int_value + *data - '0';
         } else if (*data == '.') {
           lex.state = LEXER_STATE_IN_NUMBER_FRAC;
@@ -460,6 +479,7 @@ EMBEDJSON_STATIC int embedjson_lexer_finalize(embedjson_lexer* lexer)
     case LEXER_STATE_IN_STRING:
     case LEXER_STATE_IN_STRING_ESCAPE:
     case LEXER_STATE_IN_STRING_UNICODE_ESCAPE:
+    case LEXER_STATE_IN_NUMBER_SIGN:
       return embedjson_error_ex((embedjson_parser*) lexer,
           EMBEDJSON_EOF_IN_STRING, 0);
     case LEXER_STATE_IN_NUMBER:

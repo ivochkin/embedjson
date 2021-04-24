@@ -1,6 +1,6 @@
 /**
  * @copyright
- * Copyright (c) 2017 Stanislav Ivochkin
+ * Copyright (c) 2017-2021 Stanislav Ivochkin
  *
  * Licensed under the MIT License (see LICENSE)
  */

@@ -1,6 +1,6 @@
 /**
  * @copyright
- * Copyright (c) 2016-2017 Stanislav Ivochkin
+ * Copyright (c) 2016-2021 Stanislav Ivochkin
  *
  * Licensed under the MIT License (see LICENSE)
  */
@@ -233,7 +233,7 @@ EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
         case EMBEDJSON_TOKEN_OPEN_BRACKET:
           EMBEDJSON_RETURN_IF(stack_push(parser, STACK_VALUE_SQUARE));
           EMBEDJSON_RETURN_IF(embedjson_array_begin(parser));
-          parser->state = PARSER_STATE_EXPECT_ARRAY_VALUE;
+          parser->state = PARSER_STATE_MAYBE_ARRAY_VALUE;
           break;
         case EMBEDJSON_TOKEN_CLOSE_BRACKET:
           return embedjson_error_ex(parser, EMBEDJSON_UNEXP_CLOSE_BRACKET, position);

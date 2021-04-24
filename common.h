@@ -1,6 +1,6 @@
 /**
  * @copyright
- * Copyright (c) 2016-2017 Stanislav Ivochkin
+ * Copyright (c) 2016-2021 Stanislav Ivochkin
  *
  * Licensed under the MIT License (see LICENSE)
  */
@@ -40,7 +40,7 @@ typedef unsigned long embedjson_size_t;
 #elif defined(__x86_64__)
 typedef unsigned long long embedjson_size_t;
 #else
-/*
+/**
  * Please report a bug at https://github.com/ivochkin/embedjson/issues/new
  * if an error below is triggered in your environment
  */
@@ -162,12 +162,16 @@ typedef enum {
    * Not enough data to complete JSON parsing.
    */
   EMBEDJSON_INSUFFICIENT_INPUT,
+  /** Unexpected symbol */
+  EMBEDJSON_UNEXP_SYMBOL,
+  /** Got number starting with a leading zero */
+  EMBEDJSON_LEADING_ZERO,
   /**
    * Unexpected error.
    *
-   * Under normal circumstances, this error should never happen. Erros of this
+   * Under normal circumstances, this error should never happen. Errors of this
    * type should be regarded as failed assertions. But since failed assertions
-   * have very destructive consequences for the application, such erros are
+   * have very destructive consequences for the application, such errors are
    * reported more gently.
    *
    * Please report a bug at https://github.com/ivochkin/embedjson/issues/new

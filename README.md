@@ -120,3 +120,4 @@ API changes haven't been tracked for versions prior to 2.x. Version 2.0.0 should
 - Integrate https://github.com/nst/JSONTestSuite
 - 95+% test coverage
 - Ensure unicode escape does not need validation
+- Fuzzing

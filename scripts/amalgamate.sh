@@ -13,6 +13,16 @@ pushd $embedjson_root >/dev/null
 
 cat >$out/embedjson.c <<EOT
 /**
+@copyright
+
+EOT
+
+cat LICENSE >> $out/embedjson.c
+
+cat >> $out/embedjson.c <<EOT
+ */
+
+/**
  * This is an amalgamated version of the embedjson library.
  *
  * Regular sources of the library could be found in the
@@ -32,16 +42,6 @@ cat >$out/embedjson.c <<EOT
  * Embedjson version: $(git describe --tags --long)
  * Generated at: $(LC_ALL=en_US.utf8 date -u)
  *
- */
-
-/**
-@copyright
-
-EOT
-
-cat LICENSE >> $out/embedjson.c
-
-cat >> $out/embedjson.c <<EOT
  */
 
 #define EMBEDJSON_AMALGAMATE
