@@ -53,7 +53,7 @@ static int embedjson_memcmp(const void *vl, const void *vr, embedjson_size_t n)
 
 
 /*
- * Returns {-10}^{n}
+ * Returns {10}^{308-n}
  */
 static double powm10(int n)
 {
@@ -185,7 +185,8 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
           lex.minus |= 1;
           lex.state = LEXER_STATE_IN_NUMBER_SIGN;
         } else if (*data == '+') {
-          lex.state = LEXER_STATE_IN_NUMBER_SIGN;
+          return embedjson_error_ex((embedjson_parser*) lexer,
+              EMBEDJSON_LEADING_PLUS, data);
         } else if ('0' <= *data && *data <= '9') {
           lex.int_value = *data - '0';
           lex.state = LEXER_STATE_IN_NUMBER;
@@ -287,6 +288,9 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
             }
             RETURN_IF(embedjson_tokenc_end(lexer, data));
             lex.state = LEXER_STATE_LOOKUP_TOKEN;
+          } else if (!lex.nb && (unsigned char) *data < 0x20) {
+            return embedjson_error_ex((embedjson_parser*) lexer,
+                EMBEDJSON_BAD_UTF8, data);
           }
         }
         break;
@@ -311,6 +315,9 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
           lex.state = LEXER_STATE_IN_STRING_UNICODE_ESCAPE;
           lex.offset = 0;
           break;
+        } else {
+          return embedjson_error_ex((embedjson_parser*) lexer,
+              EMBEDJSON_BAD_ESCAPE, data);
         }
         string_chunk_begin = data + 1;
         lex.state = LEXER_STATE_IN_STRING;
@@ -359,6 +366,8 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
           lex.int_value = 10 * lex.int_value + *data - '0';
         } else if (*data == '.') {
           lex.state = LEXER_STATE_IN_NUMBER_FRAC;
+        } else if (*data == 'e' || *data == 'E') {
+          lex.state = LEXER_STATE_IN_NUMBER_EXP_SIGN;
         } else {
           data--;
           if (lex.minus) {
@@ -375,8 +384,16 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
           lex.frac_value = 10 * lex.frac_value + *data - '0';
           lex.frac_power++;
         } else if (*data == 'e' || *data == 'E') {
+          if (!lex.frac_power) {
+            return embedjson_error_ex((embedjson_parser*) lexer,
+              EMBEDJSON_EMPTY_FRAC, data);
+          }
           lex.state = LEXER_STATE_IN_NUMBER_EXP_SIGN;
         } else {
+          if (!lex.frac_power) {
+            return embedjson_error_ex((embedjson_parser*) lexer,
+              EMBEDJSON_EMPTY_FRAC, data);
+          }
           data--;
           double value = lex.int_value +
             lex.frac_value * powm10(lex.frac_power);
@@ -396,6 +413,7 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
           lex.exp_minus |= 1;
         } else if ('0' <= *data && *data <= '9') {
           lex.exp_value = *data - '0';
+          lex.exp_not_empty = 1;
         } else if (*data != '+') {
           return embedjson_error_ex((embedjson_parser*) lexer,
               EMBEDJSON_BAD_EXPONENT, data);
@@ -405,7 +423,17 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
       case LEXER_STATE_IN_NUMBER_EXP:
         if ('0' <= *data && *data <= '9') {
           lex.exp_value = 10 * lex.exp_value + *data - '0';
+          lex.exp_not_empty = 1;
+          if ((lex.exp_minus && lex.exp_value > 323)
+              || (!lex.exp_minus && lex.exp_value > 308)) {
+            return embedjson_error_ex((embedjson_parser*) lexer,
+                EMBEDJSON_EXPONENT_OVERFLOW, data);
+          }
         } else {
+          if (!lex.exp_not_empty) {
+            return embedjson_error_ex((embedjson_parser*) lexer,
+                EMBEDJSON_EMPTY_EXP, data);
+          }
           data--;
           double value = lex.int_value
             + lex.frac_value * powm10(lex.frac_power);
@@ -420,6 +448,7 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
           lex.minus = 0;
           lex.exp_value = 0;
           lex.exp_minus = 0;
+          lex.exp_not_empty = 0;
           lex.state = LEXER_STATE_LOOKUP_TOKEN;
         }
         break;

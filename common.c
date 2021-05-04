@@ -102,9 +102,27 @@ EMBEDJSON_STATIC const char* embedjson_strerror(embedjson_error_code code)
     case EMBEDJSON_LEADING_ZERO:
       return "EMBEDJSON_LEADING_ZERO: "
         "Got number starting with a leading zero (28)";
+    case EMBEDJSON_LEADING_PLUS:
+      return "EMBEDJSON_LEADING_PLUS: "
+        "Got number starting with a leading plus (29)";
+    case EMBEDJSON_EMPTY_FRAC:
+      return "EMBEDJSON_EMPTY_FRAC: "
+        "Got empty fractional part of the number (30)";
+    case EMBEDJSON_EMPTY_EXP:
+      return "EMBEDJSON_EMPTY_EXP: "
+        "Got empty exponential part of the number (31)";
+    case EMBEDJSON_BAD_ESCAPE:
+      return "EMBEDJSON_BAD_ESCAPE: "
+        "Got unexpected symbol while parsing escape sequence (32)";
+    case EMBEDJSON_UNESCAPED_CONTROL_CHAR:
+      return "EMBEDJSON_UNESCAPED_CONTROL_CHAR: "
+        "Got unescaped ASCII control character (33)";
+    case EMBEDJSON_EXPONENT_OVERFLOW:
+      return "EMBEDJSON_EXPONENT_OVERFLOW: "
+        "Too large exponent part of the floating-point number (34)";
     case EMBEDJSON_INTERNAL_ERROR:
       return "EMBEDJSON_INTERNAL_ERROR: "
-        "Unexpected internal error (29). " EMBEDJSON_BUG_REPORT;
+        "Unexpected internal error (35). " EMBEDJSON_BUG_REPORT;
     default:
       return "Unknown error. " EMBEDJSON_BUG_REPORT;
   }

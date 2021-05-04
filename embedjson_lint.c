@@ -53,7 +53,7 @@ static int embedjson_bool(embedjson_parser* parser, char value)
   return 0;
 }
 
-static int embedjson_int(embedjson_parser* parser, long long value)
+static int embedjson_int(embedjson_parser* parser, embedjson_int_t value)
 {
   EMBEDJSON_UNUSED(parser);
   EMBEDJSON_PRINTF("int %lld\n", value);

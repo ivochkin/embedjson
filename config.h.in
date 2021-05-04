@@ -7,6 +7,11 @@
 
 #pragma once
 
+/* Configure options */
+#cmakedefine01 EMBEDJSON_ENABLE_INT128
+
+/* Embedjson configuration */
 #cmakedefine01 EMBEDJSON_DYNAMIC_STACK
 #define EMBEDJSON_STATIC_STACK_SIZE @EMBEDJSON_STATIC_STACK_SIZE@
 #cmakedefine01 EMBEDJSON_VALIDATE_UTF8
+#define EMBEDJSON_INT_T @EMBEDJSON_INT_T@

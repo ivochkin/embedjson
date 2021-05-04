@@ -26,6 +26,8 @@ typedef struct embedjson_parser {
 #else
   char stack[EMBEDJSON_STATIC_STACK_SIZE];
 #endif
+  /* Space for user-defined data, embedjson does not use this field */
+  void* userdata;
 } embedjson_parser;
 
 EMBEDJSON_STATIC int embedjson_push(embedjson_parser* parser, const char* data,
@@ -35,7 +37,7 @@ EMBEDJSON_STATIC int embedjson_finalize(embedjson_parser* parser);
 
 EMBEDJSON_STATIC int embedjson_null(embedjson_parser* parser);
 EMBEDJSON_STATIC int embedjson_bool(embedjson_parser* parser, char value);
-EMBEDJSON_STATIC int embedjson_int(embedjson_parser* parser, long long value);
+EMBEDJSON_STATIC int embedjson_int(embedjson_parser* parser, embedjson_int_t value);
 EMBEDJSON_STATIC int embedjson_double(embedjson_parser* parser, double value);
 EMBEDJSON_STATIC int embedjson_string_begin(embedjson_parser* parser);
 EMBEDJSON_STATIC int embedjson_string_chunk(embedjson_parser* parser,

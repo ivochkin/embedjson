@@ -50,6 +50,12 @@ typedef unsigned long long embedjson_size_t;
 typedef EMBEDJSON_SIZE_T embedjson_size_t;
 #endif
 
+#ifndef EMBEDJSON_INT_T
+typedef long long embedjson_int_t;
+#else
+typedef EMBEDJSON_INT_T embedjson_int_t;
+#endif
+
 #ifndef EMBEDJSON_DEBUG
 /**
  * Emit debug messages to stdout during parsing
@@ -166,6 +172,33 @@ typedef enum {
   EMBEDJSON_UNEXP_SYMBOL,
   /** Got number starting with a leading zero */
   EMBEDJSON_LEADING_ZERO,
+  /** Got number starting with a leading plus */
+  EMBEDJSON_LEADING_PLUS,
+  /** Got empty fractional part of the number */
+  EMBEDJSON_EMPTY_FRAC,
+  /** Got empty exponential part of the number */
+  EMBEDJSON_EMPTY_EXP,
+  /**
+   * Got unexpected symbol while parsing escape sequence
+   *
+   * Symbols to complete escape sequence: " \ / b f n r t u
+   */
+  EMBEDJSON_BAD_ESCAPE,
+  /**
+   * Got unescaped ASCII control character (code point < 0x20)
+   *
+   * These characters are disallowed by the JSON specification despite
+   * that some of them are valid unicode codes.
+   */
+  EMBEDJSON_UNESCAPED_CONTROL_CHAR,
+  /**
+   * Too large exponent part of the floating-point number.
+   *
+   * The IEEE Standard for Floating-Point Arithmetic (IEEE 754)
+   * allows double to represent numbers in the range
+   * [4.9406564584124654 * 10^{−324}, 1.7976931348623157 * 10^{308}]
+   */
+  EMBEDJSON_EXPONENT_OVERFLOW,
   /**
    * Unexpected error.
    *

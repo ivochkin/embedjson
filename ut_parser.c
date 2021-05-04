@@ -124,7 +124,7 @@ int embedjson_bool(embedjson_parser* parser, char value)
   return on_call(CALL_BOOL);
 }
 
-int embedjson_int(embedjson_parser* parser, long long value)
+int embedjson_int(embedjson_parser* parser, embedjson_int_t value)
 {
   EMBEDJSON_UNUSED(parser);
   EMBEDJSON_UNUSED(value);
@@ -386,6 +386,171 @@ static call_type test_14_calls[] = {
   CALL_END_OBJECT,
 };
 
+/* test 15 */
+static char test_15_json[] = "[+1]";
+static data_chunk test_15_data_chunks[] = {
+  {.data = test_15_json, .size = SIZEOF(test_15_json) - 1},
+};
+static call_type test_15_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 16 */
+static char test_16_json[] = "[-2.]";
+static data_chunk test_16_data_chunks[] = {
+  {.data = test_16_json, .size = SIZEOF(test_16_json) - 1},
+};
+static call_type test_16_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 17 */
+static char test_17_json[] = "[0.3e+]";
+static data_chunk test_17_data_chunks[] = {
+  {.data = test_17_json, .size = SIZEOF(test_17_json) - 1},
+};
+static call_type test_17_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 18 */
+static char test_18_json[] = "[0.e1]";
+static data_chunk test_18_data_chunks[] = {
+  {.data = test_18_json, .size = SIZEOF(test_18_json) - 1},
+};
+static call_type test_18_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 19 */
+static char test_19_json[] = "[1.0e+]";
+static data_chunk test_19_data_chunks[] = {
+  {.data = test_19_json, .size = SIZEOF(test_19_json) - 1},
+};
+static call_type test_19_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 20 */
+static char test_20_json[] = "[1.0e-]";
+static data_chunk test_20_data_chunks[] = {
+  {.data = test_20_json, .size = SIZEOF(test_20_json) - 1},
+};
+static call_type test_20_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 21 */
+static char test_21_json[] = "[2.e+3]";
+static data_chunk test_21_data_chunks[] = {
+  {.data = test_21_json, .size = SIZEOF(test_21_json) - 1},
+};
+static call_type test_21_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 22 */
+static char test_22_json[] = "[2.e-3]";
+static data_chunk test_22_data_chunks[] = {
+  {.data = test_22_json, .size = SIZEOF(test_22_json) - 1},
+};
+static call_type test_22_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 23 */
+static char test_23_json[] = "[2.e3]";
+static data_chunk test_23_data_chunks[] = {
+  {.data = test_23_json, .size = SIZEOF(test_23_json) - 1},
+};
+static call_type test_23_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 24 */
+static char test_24_json[] = "[9.e+]";
+static data_chunk test_24_data_chunks[] = {
+  {.data = test_24_json, .size = SIZEOF(test_24_json) - 1},
+};
+static call_type test_24_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 25 */
+static char test_25_json[] = "[1.]";
+static data_chunk test_25_data_chunks[] = {
+  {.data = test_25_json, .size = SIZEOF(test_25_json) - 1},
+};
+static call_type test_25_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_ERROR,
+};
+
+/* test 26 */
+static char test_26_json[] = "[123e65]";
+static data_chunk test_26_data_chunks[] = {
+  {.data = test_26_json, .size = SIZEOF(test_26_json) - 1},
+};
+static call_type test_26_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_DOUBLE,
+  CALL_END_ARRAY,
+};
+
+/* test 27 */
+static char test_27_json[] = "[1E+2]";
+static data_chunk test_27_data_chunks[] = {
+  {.data = test_27_json, .size = SIZEOF(test_27_json) - 1},
+};
+static call_type test_27_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_DOUBLE,
+  CALL_END_ARRAY,
+};
+
+/* test 28 */
+static char test_28_json[] = "[1E-2]";
+static data_chunk test_28_data_chunks[] = {
+  {.data = test_28_json, .size = SIZEOF(test_28_json) - 1},
+};
+static call_type test_28_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_DOUBLE,
+  CALL_END_ARRAY,
+};
+
+/* test 29 */
+static char test_29_json[] = "[1e-2]";
+static data_chunk test_29_data_chunks[] = {
+  {.data = test_29_json, .size = SIZEOF(test_29_json) - 1},
+};
+static call_type test_29_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_DOUBLE,
+  CALL_END_ARRAY,
+};
+
+/* test 30 */
+static char test_30_json[] = "[1e+2]";
+static data_chunk test_30_data_chunks[] = {
+  {.data = test_30_json, .size = SIZEOF(test_30_json) - 1},
+};
+static call_type test_30_calls[] = {
+  CALL_BEGIN_ARRAY,
+  CALL_DOUBLE,
+  CALL_END_ARRAY,
+};
+
 #define TEST_CASE(n, description) \
 { \
   .name = (description), \
@@ -410,6 +575,22 @@ static test_case all_tests[] = {
   TEST_CASE(12, "JSONTestSuite.n_structure_array_trailing_garbage"),
   TEST_CASE(13, "JSONTestSuite.n_structure_number_with_trailing_garbage"),
   TEST_CASE(14, "JSONTestSuite.y_object_simple"),
+  TEST_CASE(15, "JSONTestSuite.n_number_+1"),
+  TEST_CASE(16, "JSONTestSuite.n_number_-2."),
+  TEST_CASE(17, "JSONTestSuite.n_number_0.3e+"),
+  TEST_CASE(18, "JSONTestSuite.n_number_0.e1"),
+  TEST_CASE(19, "JSONTestSuite.n_number_1.0e+"),
+  TEST_CASE(20, "JSONTestSuite.n_number_1.0e-"),
+  TEST_CASE(21, "JSONTestSuite.n_number_2.e+3"),
+  TEST_CASE(22, "JSONTestSuite.n_number_2.e-3"),
+  TEST_CASE(23, "JSONTestSuite.n_number_2.e3"),
+  TEST_CASE(24, "JSONTestSuite.n_number_9.e+"),
+  TEST_CASE(25, "JSONTestSuite.n_number_real_without_fractional_part"),
+  TEST_CASE(26, "JSONTestSuite.y_number"),
+  TEST_CASE(27, "JSONTestSuite.y_number_real_capital_e_neg_exp"),
+  TEST_CASE(28, "JSONTestSuite.y_number_real_capital_e_pos_exp"),
+  TEST_CASE(29, "JSONTestSuite.y_number_real_neg_exp"),
+  TEST_CASE(30, "JSONTestSuite.y_number_real_pos_exponent"),
 };
 
 int main()

@@ -25,6 +25,7 @@ Take a look at those brilliant projects if you need a generic JSON library:
 * No dependencies - even libc is not needed.
 * No memory allocations. Embedjson can be configured to use externally managed dynamic stack.
 * UTF-8 validation, including [UTF-8 Shortest Form](http://www.unicode.org/versions/corrigendum1.html).
+* Passes all tests from [JSONTestSuite](https://github.com/nst/JSONTestSuite).
 
 ## Configuring embedjson
 
@@ -38,6 +39,7 @@ into the code to configure it:
 | EMBEDJSON_STATIC_STACK_SIZE | 16        | Size (in bytes) of the stack. Size of the stack determines maximum supported objects/arrays nesting level. Each nesting level consumes 1 bit of the stack, so 16 byte stack allows at most 128 nested objects or arrays.
 | EMBEDJSON_VALIDATE_UTF8     | 1         | Enable UTF-8 validation
 | EMBEDJSON_SIZE_T            | guessed   | A type to use where `size_t` is needed. By default, `unsigned long` or `unsigned long long` are used, depending on the target architecture.<br/>_This macro is needed to maintain independency from libc._
+| EMBEDJSON_INT_T             | long long | A type to store and operate with parsed integer values. 64-bit `long long` should be enough for any common usage case. However, if json to be parsed contains extra long integers, one could re-define `EMBEDJSON_INT_T` to 128-bit integer type supported by the compiler.
 
 ## Usage guide
 
@@ -47,7 +49,7 @@ Inline `embedjson.c` into your code and provide an implementation for the follow
 * `int embedjson_error(embedjson_parser* parser, const char* position);`
 * `int embedjson_null(embedjson_parser* parser);`
 * `int embedjson_bool(embedjson_parser* parser, char value);`
-* `int embedjson_int(embedjson_parser* parser, long long value);`
+* `int embedjson_int(embedjson_parser* parser, embedjson_int_t value);`
 * `int embedjson_double(embedjson_parser* parser, double value);`
 * `int embedjson_string_begin(embedjson_parser* parser);`
 * `int embedjson_string_chunk(embedjson_parser* parser, const char* data, embedjson_size_t size);`
@@ -58,12 +60,16 @@ Inline `embedjson.c` into your code and provide an implementation for the follow
 * `int embedjson_array_end(embedjson_parser* parser);`
 * `int embedjson_stack_overflow(embedjson_parser* parser);` (Only if `EMBEDJSON_DYNAMIC_STACK` is enabled)
 
+Construst `embedjson_parser` instance and memset it's content to zero.
+Provide data for json parsing via `embedjson_push` and `embedjson_finalize` methods. Parsing results are returned via callback functions listed above.
+
 Finally you'll end up with a source file similar to this:
 
 ```c
 // main.c
 #include <string.h> /* for memset */
 
+/* Configure embedjson library (optional, see "Configuring embedjson" in README.md) */
 #define EMBEDJSON_DYNAMIC_STACK 0
 #include <embedjson.c>
 
@@ -78,7 +84,7 @@ static int embedjson_null(embedjson_parser* parser)
   return 0;
 }
 static int embedjson_bool(embedjson_parser* parser, char value) { return 0; }
-static int embedjson_int(embedjson_parser* parser, long long value) { return 0; }
+static int embedjson_int(embedjson_parser* parser, embedjson_int_t value) { return 0; }
 static int embedjson_double(embedjson_parser* parser, double value) { return 0; }
 static int embedjson_string_begin(embedjson_parser* parser) { return 0; }
 static int embedjson_string_chunk(embedjson_parser* parser,
@@ -94,7 +100,13 @@ int main()
   char json[] = "{\"some\": \"json\", \"object\": true}";
   embedjson_parser parser;
   memset(&parser, 0, sizeof(parser));
-  return embedjson_push(&parser, json, sizeof(json) - 1);
+  if (embedjson_push(&parser, json, sizeof(json) - 1)) {
+    return 1;
+  }
+  if (embedjson_finalize(&parser)) {
+    return 1;
+  }
+  return 0;
 }
 ```
 
@@ -105,6 +117,13 @@ An example of how to intergrate embedjson into the real-world application can be
 A list of all breaking changes of each major release is accumulated in this section.
 
 ### 3.x (upcoming)
+
+- Change `embedjson_int` interface:
+  ```diff
+  - int embedjson_int(embedjson_parser* parser, long long value)
+  + int embedjson_int(embedjson_parser* parser, embedjson_int_t value)
+  ```
+
 - Change `embedjson_error` interface:
   ```diff
   - int embedjson_error(embedjson_parser*, const char*)
@@ -117,7 +136,9 @@ API changes haven't been tracked for versions prior to 2.x. Version 2.0.0 should
 ## TODO
 - UTF-16, UTF-32 support
 - bignums (integers with values above 64 bits)
-- Integrate https://github.com/nst/JSONTestSuite
+- Integrate all tests from https://github.com/nst/JSONTestSuite into unit tests
 - 95+% test coverage
 - Ensure unicode escape does not need validation
 - Fuzzing
+- non-arithmetical double construction (IEEE 754)
+- recovery from several types of errors, e.g. EMBEDJSON_LEADING_PLUS, EMBEDJSON_UNESCAPED_CONTROL_CHAR, EMBEDJSON_EXPONENT_OVERFLOW

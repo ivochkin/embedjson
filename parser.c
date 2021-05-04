@@ -385,7 +385,7 @@ EMBEDJSON_STATIC int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
   return embedjson_string_chunk(parser, data, size);
 }
 
-EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, long long value,
+EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, embedjson_int_t value,
     const char* position)
 {
   embedjson_parser* parser = (embedjson_parser*) lexer;

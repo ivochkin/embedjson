@@ -40,7 +40,7 @@ typedef struct token_info {
   int type;
   token_value_type value_type;
   union {
-    long long integer;
+    embedjson_int_t integer;
     double fp;
     struct {
       const char* data;
@@ -237,7 +237,7 @@ int embedjson_tokenc_end(embedjson_lexer* lexer, const char* position)
   return on_token((token_info) {.type = EMBEDJSON_TOKEN_STRING_END}, position);
 }
 
-int embedjson_tokeni(embedjson_lexer* lexer, long long value,
+int embedjson_tokeni(embedjson_lexer* lexer, embedjson_int_t value,
     const char* position)
 {
   EMBEDJSON_UNUSED(lexer);
@@ -478,7 +478,7 @@ static token_info test_09_tokens[] = {
 };
 
 /* test 10 */
-static char test_10_json[] = "-10.0152e-2 10000.00 +99.0000001";
+static char test_10_json[] = "-10.0152e-2 10000.00 99.0000001";
 static data_chunk test_10_data_chunks[] = {
   {.data = test_10_json, .size = 6},
   {.data = test_10_json + 6, .size = 9},
@@ -616,6 +616,8 @@ static token_info test_17_tokens[] = {
  * Null character '\u0000' within string. Null character is a valid unicode
  * symbol and can occur in any place of the string. It breaks ASCII convention
  * that zero bytes indicates end of the string.
+ *
+ * However, JSON spec disallows ascii control characters in string (below 0x20)
  */
 static char test_18_json[] = "\"Hello,\x00world\" null";
 static data_chunk test_18_data_chunks[] = {
@@ -623,13 +625,7 @@ static data_chunk test_18_data_chunks[] = {
 };
 static token_info test_18_tokens[] = {
   {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
-  {
-    .type = EMBEDJSON_TOKEN_STRING_CHUNK,
-    .value_type = TOKEN_VALUE_TYPE_STR,
-    .value = {.str = {.data = "Hello,\x00world", .size = 12}}
-  },
-  {.type = EMBEDJSON_TOKEN_STRING_END},
-  {.type = EMBEDJSON_TOKEN_NULL}
+  {.type = EMBEDJSON_TOKEN_ERROR},
 };
 
 /**
@@ -687,6 +683,314 @@ static token_info test_21_tokens[] = {
   {.type = EMBEDJSON_TOKEN_CLOSE_CURLY_BRACKET},
 };
 
+/**
+ * test 22
+ *
+ * Test case n_number_+1 from the JSONTestSuite
+ */
+static char test_22_json[] = "[+1]";
+static data_chunk test_22_data_chunks[] = {
+  {.data = test_22_json, .size = sizeof(test_22_json) - 1}
+};
+static token_info test_22_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_ERROR}
+};
+
+/**
+ * test 23
+ *
+ * Test case y_number from the JSONTestSuite
+ */
+static char test_23_json[] = "[123e65]";
+static data_chunk test_23_data_chunks[] = {
+  {.data = test_23_json, .size = sizeof(test_23_json) - 1}
+};
+static token_info test_23_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {
+    .type = EMBEDJSON_TOKEN_NUMBER,
+    .value_type = TOKEN_VALUE_TYPE_FP,
+    .value = {.fp = 123e65}
+  },
+  {.type = EMBEDJSON_TOKEN_CLOSE_BRACKET},
+};
+
+/**
+ * test 24
+ *
+ * Test case n_string_backslash_00 from the JSONTestSuite
+ */
+static char test_24_json[] = "[\"\\\x00\"]";
+static data_chunk test_24_data_chunks[] = {
+  {.data = test_24_json, .size = sizeof(test_24_json) - 1}
+};
+static token_info test_24_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 25
+ *
+ * Test case n_string_escape_x from the JSONTestSuite
+ */
+static char test_25_json[] = "[\"\\x00\"]";
+static data_chunk test_25_data_chunks[] = {
+  {.data = test_25_json, .size = sizeof(test_25_json) - 1}
+};
+static token_info test_25_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 26
+ *
+ * Test case n_string_escaped_ctrl_char_tab from the JSONTestSuite
+ */
+static char test_26_json[] = "[\"\\\x09\"]";
+static data_chunk test_26_data_chunks[] = {
+  {.data = test_26_json, .size = sizeof(test_26_json) - 1}
+};
+static token_info test_26_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 27
+ *
+ * Test case n_string_escaped_emoji from the JSONTestSuite
+ */
+static char test_27_json[] = "[\"\\\xF0\x9F\x8C\x80\"]";
+static data_chunk test_27_data_chunks[] = {
+  {.data = test_27_json, .size = sizeof(test_27_json) - 1}
+};
+static token_info test_27_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 28
+ *
+ * Test case n_string_incomplete_surrogate_escape_invalid from the JSONTestSuite
+ */
+static char test_28_json[] = "[\"\\uD800\\uD800\\x\"]";
+static data_chunk test_28_data_chunks[] = {
+  {.data = test_28_json, .size = sizeof(test_28_json) - 1}
+};
+static token_info test_28_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {
+    .type = EMBEDJSON_TOKEN_STRING_CHUNK,
+    .value_type = TOKEN_VALUE_TYPE_STR,
+    .value = {.str = {.data = "\xd8\x00", .size = 2}}
+  },
+  {
+    .type = EMBEDJSON_TOKEN_STRING_CHUNK,
+    .value_type = TOKEN_VALUE_TYPE_STR,
+    .value = {.str = {.data = "\xd8\x00", .size = 2}}
+  },
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 29
+ *
+ * Test case n_string_invalid_backslash_esc from the JSONTestSuite
+ */
+static char test_29_json[] = "[\"\\a\"]";
+static data_chunk test_29_data_chunks[] = {
+  {.data = test_29_json, .size = sizeof(test_29_json) - 1}
+};
+static token_info test_29_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 30
+ *
+ * Test case n_string_unicode_CapitalU from the JSONTestSuite
+ */
+static char test_30_json[] = "\"\\UA66D\"";
+static data_chunk test_30_data_chunks[] = {
+  {.data = test_30_json, .size = sizeof(test_30_json) - 1}
+};
+static token_info test_30_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 31
+ *
+ * Test case n_string_invalid_utf8_after_escape from the JSONTestSuite
+ */
+static char test_31_json[] = "[\"\\\xE5\"]";
+static data_chunk test_31_data_chunks[] = {
+  {.data = test_31_json, .size = sizeof(test_31_json) - 1}
+};
+static token_info test_31_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 32
+ *
+ * Test case n_string_unescaped_ctrl_char from the JSONTestSuite
+ */
+static char test_32_json[] = "[\"a\x00a\"]";
+static data_chunk test_32_data_chunks[] = {
+  {.data = test_32_json, .size = sizeof(test_32_json) - 1}
+};
+static token_info test_32_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 33
+ *
+ * Test case n_string_unescaped_tab from the JSONTestSuite
+ */
+static char test_33_json[] = "[\"\x09\"]";
+static data_chunk test_33_data_chunks[] = {
+  {.data = test_33_json, .size = sizeof(test_33_json) - 1}
+};
+static token_info test_33_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 34
+ *
+ * Test case n_string_unescaped_newline from the JSONTestSuite
+ */
+static char test_34_json[] = "[\"new\x0Aline\"]";
+static data_chunk test_34_data_chunks[] = {
+  {.data = test_34_json, .size = sizeof(test_34_json) - 1}
+};
+static token_info test_34_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_STRING_BEGIN},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 35
+ *
+ * Test case i_number_huge_exp from the JSONTestSuite
+ */
+static char test_35_json[] =
+    "[0.4e006699999999999999999999999999999999999999999999999999999999999999999999999999"
+    "99999999999999999999999999999999999999999969999999006]";
+static data_chunk test_35_data_chunks[] = {
+  {.data = test_35_json, .size = sizeof(test_35_json) - 1}
+};
+static token_info test_35_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 36
+ *
+ * Test case i_number_neg_int_huge_exp from the JSONTestSuite
+ */
+static char test_36_json[] = "[-1e+9999]";
+static data_chunk test_36_data_chunks[] = {
+  {.data = test_36_json, .size = sizeof(test_36_json) - 1}
+};
+static token_info test_36_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 37
+ *
+ * Test case i_number_pos_double_huge_exp from the JSONTestSuite
+ */
+static char test_37_json[] = "[1.5e+9999]";
+static data_chunk test_37_data_chunks[] = {
+  {.data = test_37_json, .size = sizeof(test_37_json) - 1}
+};
+static token_info test_37_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 38
+ *
+ * Test case i_number_real_neg_overflow from the JSONTestSuite
+ */
+static char test_38_json[] = "[-123123e100000]";
+static data_chunk test_38_data_chunks[] = {
+  {.data = test_38_json, .size = sizeof(test_38_json) - 1}
+};
+static token_info test_38_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 39
+ *
+ * Test case i_number_real_pos_overflow from the JSONTestSuite
+ */
+static char test_39_json[] = "[123123e100000]";
+static data_chunk test_39_data_chunks[] = {
+  {.data = test_39_json, .size = sizeof(test_39_json) - 1}
+};
+static token_info test_39_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 40
+ *
+ * Test case i_number_real_underflow from the JSONTestSuite
+ */
+static char test_40_json[] = "[123e-10000000]";
+static data_chunk test_40_data_chunks[] = {
+  {.data = test_40_json, .size = sizeof(test_40_json) - 1}
+};
+static token_info test_40_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_BRACKET},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+/**
+ * test 41
+ *
+ * Test case n_object_non_string_key_but_huge_number_instead from the JSONTestSuite
+ */
+static char test_41_json[] = "{9999E9999:1}";
+static data_chunk test_41_data_chunks[] = {
+  {.data = test_41_json, .size = sizeof(test_41_json) - 1}
+};
+static token_info test_41_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_CURLY_BRACKET},
+  {.type = EMBEDJSON_TOKEN_ERROR},
+};
+
+
 #define TEST_CASE(n, description) \
 { \
   .enabled = 1, \
@@ -734,6 +1038,26 @@ static test_case all_tests[] = {
   TEST_CASE(19, "JSONTestSuite.n_array_extra_comma"),
   TEST_CASE(20, "JSONTestSuite.n_number_with_leading_zero"),
   TEST_CASE(21, "JSONTestSuite.y_object_simple"),
+  TEST_CASE(22, "JSONTestSuite.n_number_+1"),
+  TEST_CASE(23, "JSONTestSuite.y_number"),
+  TEST_CASE(24, "JSONTestSuite.n_string_backslash_00"),
+  TEST_CASE(25, "JSONTestSuite.n_string_escape_x"),
+  TEST_CASE(26, "JSONTestSuite.n_string_escaped_ctrl_char_tab"),
+  TEST_CASE(27, "JSONTestSuite.n_string_escaped_emoji"),
+  TEST_CASE(28, "JSONTestSuite.n_string_incomplete_surrogate_escape_invalid"),
+  TEST_CASE(29, "JSONTestSuite.n_string_invalid_backslash_esc"),
+  TEST_CASE(30, "JSONTestSuite.n_string_invalid_utf8_after_escape"),
+  TEST_CASE(31, "JSONTestSuite.n_string_unicode_CapitalU"),
+  TEST_CASE(32, "JSONTestSuite.n_string_unescaped_ctrl_char"),
+  TEST_CASE(33, "JSONTestSuite.n_string_unescaped_newline"),
+  TEST_CASE(34, "JSONTestSuite.n_string_unescaped_tab"),
+  TEST_CASE(35, "JSONTestSuite.i_number_huge_exp"),
+  TEST_CASE(36, "JSONTestSuite.i_number_neg_int_huge_exp"),
+  TEST_CASE(37, "JSONTestSuite.i_number_pos_double_huge_exp"),
+  TEST_CASE(38, "JSONTestSuite.i_number_real_neg_overflow"),
+  TEST_CASE(39, "JSONTestSuite.i_number_real_pos_overflow"),
+  TEST_CASE(40, "JSONTestSuite.i_number_real_underflow"),
+  TEST_CASE(41, "JSONTestSuite.n_object_non_string_key_but_huge_number_instead"),
 };
 
 int main()

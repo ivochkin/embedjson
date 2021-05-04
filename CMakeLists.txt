@@ -3,11 +3,13 @@ project(embedjson C)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(fw)
+include(CheckTypeSize)
 
 set(EMBEDJSON_DYNAMIC_STACK FALSE CACHE BOOL "")
 set(EMBEDJSON_STATIC_STACK_SIZE 16 CACHE STRING "")
 set(EMBEDJSON_VALIDATE_UTF8 TRUE CACHE BOOL "")
 set(EMBEDJSON_COVERAGE FALSE CACHE BOOL "")
+set(EMBEDJSON_ENABLE_INT128 FALSE CACHE BOOL "")
 
 if(EMBEDJSON_COVERAGE AND NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   message(FATAL_ERROR "Code coverage can be computed only for Debug builds")
@@ -15,6 +17,20 @@ endif()
 
 if(EMBEDJSON_COVERAGE)
   fw_c_flags("--coverage -O0")
+endif()
+
+if(EMBEDJSON_ENABLE_INT128)
+  check_type_size(__int128_t EMBEDJSON_SIZEOF_INT128_T)
+  check_type_size(__int128 EMBEDJSON_SIZEOF_INT128)
+  if(EMBEDJSON_SIZEOF_INT128_T STREQUAL 16)
+    set(EMBEDJSON_INT_T __int128_t)
+  elseif(EMBEDJSON_SIZEOF_INT128 STREQUAL 16)
+    set(EMBEDJSON_INT_T __int128)
+  else()
+    message(FATAL_ERROR "No suitable 128-bit integer type found. __int128, __int128_t probed.")
+  endif()
+else()
+  set(EMBEDJSON_INT_T "long long")
 endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"

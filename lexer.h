@@ -44,7 +44,8 @@ typedef struct embedjson_lexer {
   char unicode_cp[2];
   char minus : 1;
   char exp_minus : 1;
-  long long int_value;
+  char exp_not_empty : 1;
+  embedjson_int_t int_value;
   unsigned long long frac_value;
   unsigned short frac_power;
   unsigned short exp_value;
@@ -143,6 +144,8 @@ EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
  *
  * A pointer to buffer that contains string chunk data and it's size are
  * provided to the callback
+ *
+ * @see embedjson_tokenc_begin, embedjson_tokenc_end
  */
 EMBEDJSON_STATIC int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
     embedjson_size_t size);
@@ -153,7 +156,7 @@ EMBEDJSON_STATIC int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
  *
  * @see embedjson_tokenf
  */
-EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, long long value,
+EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, embedjson_int_t value,
     const char* position);
 
 /**
