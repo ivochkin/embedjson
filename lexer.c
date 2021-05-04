@@ -288,9 +288,11 @@ EMBEDJSON_STATIC int embedjson_lexer_push(embedjson_lexer* lexer,
             }
             RETURN_IF(embedjson_tokenc_end(lexer, data));
             lex.state = LEXER_STATE_LOOKUP_TOKEN;
+#if EMBEDJSON_VALIDATE_UTF8
           } else if (!lex.nb && (unsigned char) *data < 0x20) {
             return embedjson_error_ex((embedjson_parser*) lexer,
                 EMBEDJSON_BAD_UTF8, data);
+#endif
           }
         }
         break;
