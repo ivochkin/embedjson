@@ -56,6 +56,9 @@ typedef long long embedjson_int_t;
 typedef EMBEDJSON_INT_T embedjson_int_t;
 #endif
 
+#define EMBEDJSON_INT_MAX ((((embedjson_int_t) 1) << (sizeof(embedjson_int_t) * 8 - 2)) - 1 + (((embedjson_int_t) 1) << (sizeof(embedjson_int_t) * 8 - 2)))
+#define EMBEDJSON_INT_MIN (-(EMBEDJSON_INT_MAX - 1))
+
 #ifndef EMBEDJSON_DEBUG
 /**
  * Emit debug messages to stdout during parsing
@@ -67,11 +70,11 @@ typedef EMBEDJSON_INT_T embedjson_int_t;
 #include <string.h>
 #include <stdio.h>
 #define EMBEDJSON_FILENAME (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-#define EMBEDJSON_LOG(...) \
+#define EMBEDJSON_LOG(parser, ...) \
 do { \
   char msg[512] = {0};\
   int printed;\
-  printed = snprintf(msg, sizeof(msg), "%s (%s:%d) ", __func__, EMBEDJSON_FILENAME, __LINE__);\
+  printed = snprintf(msg, sizeof(msg), "%s (%s:%d) {%p} ", __func__, EMBEDJSON_FILENAME, __LINE__, (void*) parser);\
   printed += snprintf(msg + printed , sizeof(msg) - printed, __VA_ARGS__);\
   printf("%.*s\n", (int) printed, msg);\
 } while (0)
@@ -199,6 +202,16 @@ typedef enum {
    * [4.9406564584124654 * 10^{−324}, 1.7976931348623157 * 10^{308}]
    */
   EMBEDJSON_EXPONENT_OVERFLOW,
+  /**
+   * Too large integer value
+   *
+   * Parsing integer caused signed integer type EMBEDJSON_INT_T overflow.
+   * One can extend integer type capacity by redefining EMBEDJSON_INT_T
+   * to 128 bit integer type.
+   * Another option is to enable EMBEDJSON_BIGNUM option that allows nummber
+   * values of any size.
+   */
+  EMBEDJSON_INT_OVERFLOW,
   /**
    * Unexpected error.
    *

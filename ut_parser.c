@@ -33,6 +33,11 @@ typedef enum call_type {
   CALL_END_OBJECT,
   CALL_BEGIN_ARRAY,
   CALL_END_ARRAY,
+#if EMBEDJSON_BIGNUM
+  CALL_BIGNUM_BEGIN,
+  CALL_BIGNUM_CHUNK,
+  CALL_BIGNUM_END,
+#endif /* EMBEDJSON_BIGNUM */
   CALL_ERROR
 } call_type;
 
@@ -50,6 +55,11 @@ const char* call_type_to_str(call_type ct)
     case CALL_END_OBJECT: return "CALL_END_OBJECT";
     case CALL_BEGIN_ARRAY: return "CALL_BEGIN_ARRAY";
     case CALL_END_ARRAY: return "CALL_END_ARRAY";
+#if EMBEDJSON_BIGNUM
+    case CALL_BIGNUM_BEGIN: return "CALL_BIGNUM_BEGIN";
+    case CALL_BIGNUM_CHUNK: return "CALL_BIGNUM_CHUNK";
+    case CALL_BIGNUM_END: return "CALL_BIGNUM_END";
+#endif /* EMBEDJSON_BIGNUM */
     case CALL_ERROR: return "CALL_ERROR";
     default: return "CALL_UNKNOWN";
   };
@@ -183,6 +193,31 @@ int embedjson_array_end(embedjson_parser* parser)
   return on_call(CALL_END_ARRAY);
 }
 
+#if EMBEDJSON_BIGNUM
+int embedjson_bignum_begin(embedjson_parser* parser,
+    embedjson_int_t initial_value)
+{
+  EMBEDJSON_UNUSED(parser);
+  EMBEDJSON_UNUSED(initial_value);
+  return on_call(CALL_BIGNUM_BEGIN);
+}
+
+int embedjson_bignum_chunk(embedjson_parser* parser,
+    const char* data, embedjson_size_t size)
+{
+  EMBEDJSON_UNUSED(parser);
+  EMBEDJSON_UNUSED(data);
+  EMBEDJSON_UNUSED(size);
+  return on_call(CALL_BIGNUM_CHUNK);
+}
+
+int embedjson_bignum_end(embedjson_parser* parser)
+{
+  EMBEDJSON_UNUSED(parser);
+  return on_call(CALL_BIGNUM_END);
+}
+#endif /* EMBEDJSON_BIGNUM */
+
 #if EMBEDJSON_DYNAMIC_STACK
 int embedjson_stack_overflow(embedjson_parser* parser)
 {
@@ -194,7 +229,7 @@ int embedjson_stack_overflow(embedjson_parser* parser)
   parser->stack_capacity = 2 * parser->stack_capacity + 1;
   return 0;
 }
-#endif
+#endif /* EMBEDJSON_DYNAMIC_STACK */
 
 /* test 01 */
 static char test_01_json[] = "{}";

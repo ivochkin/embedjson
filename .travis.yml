@@ -29,6 +29,12 @@ matrix:
   - os: linux
     compiler: gcc
     env: CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release -DEMBEDJSON_ENABLE_INT128=ON"
+  - os: linux
+    compiler: gcc
+    env: CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Debug -DEMBEDJSON_DEBUG=ON"
+  - os: linux
+    compiler: gcc
+    env: CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release -DEMBEDJSON_BIGNUM=ON"
 script:
 - mkdir build
 - pushd build

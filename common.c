@@ -120,9 +120,12 @@ EMBEDJSON_STATIC const char* embedjson_strerror(embedjson_error_code code)
     case EMBEDJSON_EXPONENT_OVERFLOW:
       return "EMBEDJSON_EXPONENT_OVERFLOW: "
         "Too large exponent part of the floating-point number (34)";
+    case EMBEDJSON_INT_OVERFLOW:
+      return "EMBEDJSON_INT_OVERFLOW: "
+        "Too large integer value (35)";
     case EMBEDJSON_INTERNAL_ERROR:
       return "EMBEDJSON_INTERNAL_ERROR: "
-        "Unexpected internal error (35). " EMBEDJSON_BUG_REPORT;
+        "Unexpected internal error (36). " EMBEDJSON_BUG_REPORT;
     default:
       return "Unknown error. " EMBEDJSON_BUG_REPORT;
   }

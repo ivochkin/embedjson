@@ -48,6 +48,14 @@ EMBEDJSON_STATIC int embedjson_object_end(embedjson_parser* parser);
 EMBEDJSON_STATIC int embedjson_array_begin(embedjson_parser* parser);
 EMBEDJSON_STATIC int embedjson_array_end(embedjson_parser* parser);
 
+#if EMBEDJSON_BIGNUM
+EMBEDJSON_STATIC int embedjson_bignum_begin(embedjson_parser* parser,
+    embedjson_int_t initial_value);
+EMBEDJSON_STATIC int embedjson_bignum_chunk(embedjson_parser* parser,
+    const char* data, embedjson_size_t size);
+EMBEDJSON_STATIC int embedjson_bignum_end(embedjson_parser* parser);
+#endif /* EMBEDJSON_BIGNUM */
+
 #if EMBEDJSON_DYNAMIC_STACK
 /**
  * Called from embedjson_push, when parser's stack is full and more space

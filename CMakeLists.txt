@@ -5,11 +5,20 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(fw)
 include(CheckTypeSize)
 
-set(EMBEDJSON_DYNAMIC_STACK FALSE CACHE BOOL "")
-set(EMBEDJSON_STATIC_STACK_SIZE 16 CACHE STRING "")
-set(EMBEDJSON_VALIDATE_UTF8 TRUE CACHE BOOL "")
-set(EMBEDJSON_COVERAGE FALSE CACHE BOOL "")
-set(EMBEDJSON_ENABLE_INT128 FALSE CACHE BOOL "")
+set(EMBEDJSON_DEBUG FALSE CACHE BOOL
+  "Define to enable paranoid self-checking mode.")
+set(EMBEDJSON_DYNAMIC_STACK FALSE CACHE BOOL
+  "Define to enable dynamic stack to hold parser's state.")
+set(EMBEDJSON_STATIC_STACK_SIZE 16 CACHE STRING
+  "Size (in bytes) of the stack.")
+set(EMBEDJSON_VALIDATE_UTF8 TRUE CACHE BOOL
+  "Enable UTF-8 validation")
+set(EMBEDJSON_BIGNUM FALSE CACHE BOOL
+  "Enable big numbers support.")
+set(EMBEDJSON_COVERAGE FALSE CACHE BOOL
+  "Enable collection of coverage statistics.")
+set(EMBEDJSON_ENABLE_INT128 FALSE CACHE BOOL
+  "Enable 128-bit integers for EMBEDJSON_INT_T.")
 
 if(EMBEDJSON_COVERAGE AND NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   message(FATAL_ERROR "Code coverage can be computed only for Debug builds")
@@ -27,7 +36,8 @@ if(EMBEDJSON_ENABLE_INT128)
   elseif(EMBEDJSON_SIZEOF_INT128 STREQUAL 16)
     set(EMBEDJSON_INT_T __int128)
   else()
-    message(FATAL_ERROR "No suitable 128-bit integer type found. __int128, __int128_t probed.")
+    message(FATAL_ERROR "No suitable 128-bit integer type found. "
+      "__int128, __int128_t probed.")
   endif()
 else()
   set(EMBEDJSON_INT_T "long long")

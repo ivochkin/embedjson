@@ -42,9 +42,18 @@ typedef struct embedjson_lexer {
   unsigned char state;
   unsigned char offset;
   char unicode_cp[2];
+  unsigned char encoding : 3;
+  unsigned char magic_bytes_read : 3;
   char minus : 1;
   char exp_minus : 1;
   char exp_not_empty : 1;
+  /**
+   * Magic sequence for encoding guessing
+   */
+  union {
+    char as_char[4];
+    int as_int;
+  } magic;
   embedjson_int_t int_value;
   unsigned long long frac_value;
   unsigned short frac_power;
@@ -189,3 +198,35 @@ EMBEDJSON_STATIC int embedjson_tokenc_begin(embedjson_lexer* lexer,
 EMBEDJSON_STATIC int embedjson_tokenc_end(embedjson_lexer* lexer,
     const char* position);
 
+#if EMBEDJSON_BIGNUM
+/**
+ * Called from embedjson_lexer_push when a beginning of the big number
+ * token is spotted.
+ *
+ * @see embedjson_tokenbn, embedjson_tokenbn_end
+ */
+EMBEDJSON_STATIC int embedjson_tokenbn_begin(embedjson_lexer* lexer,
+    const char* position, embedjson_int_t initial_value);
+
+/**
+ * Called from embedjson_lexer_push for each successfully parsed
+ * big number chunk.
+ *
+ * A pointer to buffer that contains big number chunk data and it's size are
+ * provided to the callback
+ */
+EMBEDJSON_STATIC int embedjson_tokenbn(embedjson_lexer* lexer, const char* data,
+    embedjson_size_t size);
+
+/**
+ * Called from embedjson_lexer_push when big number parsing is complete.
+ *
+ * From the user's perspective, a sequence of embedjson_tokenbn calls
+ * will always end with a single embedjson_tokenbn_end call.
+ * The call indicate that all chunks of the big number were parsed.
+ *
+ * @see embedjson_tokenbn, embedjson_tokenbn_begin
+ */
+EMBEDJSON_STATIC int embedjson_tokenbn_end(embedjson_lexer* lexer,
+    const char* position);
+#endif /* EMBEDJSON_BIGNUM */

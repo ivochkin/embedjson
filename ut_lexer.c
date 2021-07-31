@@ -29,10 +29,13 @@ typedef enum token_value_type {
 } token_value_type;
 
 typedef enum additional_token_type {
-  EMBEDJSON_TOKEN_STRING_BEGIN = EMBEDJSON_TOKEN_NULL + 1,
-  EMBEDJSON_TOKEN_STRING_END,
-  EMBEDJSON_TOKEN_NUMBER,
+  EMBEDJSON_TOKEN_NUMBER = EMBEDJSON_TOKEN_NULL + 1,
+  EMBEDJSON_TOKEN_STRING_BEGIN,
   EMBEDJSON_TOKEN_STRING_CHUNK,
+  EMBEDJSON_TOKEN_STRING_END,
+  EMBEDJSON_TOKEN_BIGNUM_BEGIN,
+  EMBEDJSON_TOKEN_BIGNUM_CHUNK,
+  EMBEDJSON_TOKEN_BIGNUM_END,
   EMBEDJSON_TOKEN_ERROR
 } additional_token_type;
 
@@ -88,16 +91,22 @@ static const char* token_type_to_str(int type)
       return "EMBEDJSON_TOKEN_FALSE (7)";
     case EMBEDJSON_TOKEN_NULL:
       return "EMBEDJSON_TOKEN_NULL (8)";
-    case EMBEDJSON_TOKEN_STRING_BEGIN:
-      return "EMBEDJSON_TOKEN_STRING_BEGIN (9)";
-    case EMBEDJSON_TOKEN_STRING_END:
-      return "EMBEDJSON_TOKEN_STRING_END (10)";
     case EMBEDJSON_TOKEN_NUMBER:
-      return "EMBEDJSON_TOKEN_NUMBER (11)";
+      return "EMBEDJSON_TOKEN_NUMBER (9)";
+    case EMBEDJSON_TOKEN_STRING_BEGIN:
+      return "EMBEDJSON_TOKEN_STRING_BEGIN (10)";
     case EMBEDJSON_TOKEN_STRING_CHUNK:
-      return "EMBEDJSON_TOKEN_STRING_CHUNK (12)";
+      return "EMBEDJSON_TOKEN_STRING_CHUNK (11)";
+    case EMBEDJSON_TOKEN_STRING_END:
+      return "EMBEDJSON_TOKEN_STRING_END (12)";
+    case EMBEDJSON_TOKEN_BIGNUM_BEGIN:
+      return "EMBEDJSON_TOKEN_BIGNUM_BEGIN (13)";
+    case EMBEDJSON_TOKEN_BIGNUM_CHUNK:
+      return "EMBEDJSON_TOKEN_BIGNUM_CHUNK (14)";
+    case EMBEDJSON_TOKEN_BIGNUM_END:
+      return "EMBEDJSON_TOKEN_BIGNUM_END (15)";
     case EMBEDJSON_TOKEN_ERROR:
-      return "EMBEDJSON_TOKEN_ERROR (13)";
+      return "EMBEDJSON_TOKEN_ERROR (16)";
     default:
       return "Unknown token";
   };
@@ -127,8 +136,13 @@ static void fail(const char* position, const char* fmt, ...)
     data_chunk c = itest->data_chunks[i];
     printf("%llu. \"%.*s\"\n", (ull) i + 1, (int) c.size, c.data);
   }
+  printf("Expected tokens:\n");
+  for (i = 0; i < itest->ntokens; ++i) {
+    printf("%llu. %s\n", (ull) i + 1, token_type_to_str(itest->tokens[i].type));
+  }
   printf("Failed on chunk: %llu of %llu\n",
       (ull) (idata_chunk - itest->data_chunks + 1), (ull) itest->nchunks);
+  printf("Failed on token: %ld of %ld\n", itoken - itest->tokens + 1, itest->ntokens);
   va_list args;
   va_start(args, fmt);
   vprintf(fmt, args);
@@ -148,9 +162,11 @@ static int on_token(token_info ti, const char* position)
         token_type_to_str(itoken->type), token_type_to_str(ti.type));
   }
   if (ti.type == EMBEDJSON_TOKEN_STRING_CHUNK
-      || ti.type == EMBEDJSON_TOKEN_NUMBER) {
+      || ti.type == EMBEDJSON_TOKEN_NUMBER
+      || ti.type == EMBEDJSON_TOKEN_BIGNUM_BEGIN
+      || ti.type == EMBEDJSON_TOKEN_BIGNUM_CHUNK ) {
     if (ti.value_type != itoken->value_type) {
-      fail(position, "Value type mismatch. Expected %d, got %d",
+      fail(position, "Value type mismatch. Expected %s, got %s",
           token_value_type_to_str(itoken->value_type),
           token_value_type_to_str(ti.value_type));
     }
@@ -263,6 +279,44 @@ int embedjson_tokenf(embedjson_lexer* lexer, double value, const char* position)
     position
   );
 }
+
+#if EMBEDJSON_BIGNUM
+int embedjson_tokenbn_begin(embedjson_lexer* lexer,
+    const char* position, embedjson_int_t initial_value)
+{
+  EMBEDJSON_UNUSED(lexer);
+  EMBEDJSON_UNUSED(position);
+  return on_token((token_info) {
+      .type = EMBEDJSON_TOKEN_BIGNUM_BEGIN,
+      .value_type = TOKEN_VALUE_TYPE_INTEGER,
+      .value = {.integer = initial_value}
+    },
+    position
+  );
+}
+
+int embedjson_tokenbn(embedjson_lexer* lexer, const char* data,
+    embedjson_size_t size)
+{
+  EMBEDJSON_UNUSED(lexer);
+  return on_token((token_info) {
+      .type = EMBEDJSON_TOKEN_BIGNUM_CHUNK,
+      .value_type = TOKEN_VALUE_TYPE_STR,
+      .value = {
+        .str = {.data = data, .size = size}
+      }
+    },
+    data
+  );
+}
+
+int embedjson_tokenbn_end(embedjson_lexer* lexer,
+    const char* position)
+{
+  EMBEDJSON_UNUSED(lexer);
+  return on_token((token_info) {.type = EMBEDJSON_TOKEN_BIGNUM_END}, position);
+}
+#endif /* EMBEDJSON_BIGNUM */
 
 /* test 01 */
 static char test_01_json[] = "{}";
@@ -990,6 +1044,54 @@ static token_info test_41_tokens[] = {
   {.type = EMBEDJSON_TOKEN_ERROR},
 };
 
+/**
+ * test 42
+ *
+ * valid big integer
+ */
+static char test_42_json[] = "{1000000000000000000000000000000000}";
+static data_chunk test_42_data_chunks[] = {
+  {.data = test_42_json, .size = sizeof(test_42_json) - 1}
+};
+static token_info test_42_tokens[] = {
+  {.type = EMBEDJSON_TOKEN_OPEN_CURLY_BRACKET},
+  {
+    .type = EMBEDJSON_TOKEN_BIGNUM_BEGIN,
+    .value_type = TOKEN_VALUE_TYPE_INTEGER,
+    .value = {.integer = 1000000000000000000},
+  },
+  {
+    .type = EMBEDJSON_TOKEN_BIGNUM_CHUNK,
+    .value_type = TOKEN_VALUE_TYPE_STR,
+    .value = {.str = {.data = "00000000000000", .size = 14}}
+  },
+  {.type = EMBEDJSON_TOKEN_BIGNUM_END},
+  {.type = EMBEDJSON_TOKEN_CLOSE_CURLY_BRACKET},
+};
+
+/**
+ * test 43
+ *
+ * just big integer
+ */
+static char test_43_json[] = "1000000000000000000000000000000000";
+static data_chunk test_43_data_chunks[] = {
+  {.data = test_43_json, .size = sizeof(test_43_json) - 1}
+};
+static token_info test_43_tokens[] = {
+  {
+    .type = EMBEDJSON_TOKEN_BIGNUM_BEGIN,
+    .value_type = TOKEN_VALUE_TYPE_INTEGER,
+    .value = {.integer = 1000000000000000000},
+  },
+  {
+    .type = EMBEDJSON_TOKEN_BIGNUM_CHUNK,
+    .value_type = TOKEN_VALUE_TYPE_STR,
+    .value = {.str = {.data = "00000000000000", .size = 14}}
+  },
+  {.type = EMBEDJSON_TOKEN_BIGNUM_END},
+};
+
 
 #define TEST_CASE(n, description) \
 { \
@@ -1005,6 +1107,20 @@ static token_info test_41_tokens[] = {
 #define TEST_CASE_IF_VALIDATE_UTF8(n, description) TEST_CASE(n, description)
 #else
 #define TEST_CASE_IF_VALIDATE_UTF8(n, description) \
+{ \
+  .enabled = 0, \
+  .name = (description), \
+  .nchunks = SIZEOF((test_##n##_data_chunks)), \
+  .data_chunks = (test_##n##_data_chunks), \
+  .ntokens = SIZEOF((test_##n##_tokens)), \
+  .tokens = (test_##n##_tokens) \
+}
+#endif
+
+#if EMBEDJSON_BIGNUM
+#define TEST_CASE_IF_BIGNUM(n, description) TEST_CASE(n, description)
+#else
+#define TEST_CASE_IF_BIGNUM(n, description) \
 { \
   .enabled = 0, \
   .name = (description), \
@@ -1058,6 +1174,8 @@ static test_case all_tests[] = {
   TEST_CASE(39, "JSONTestSuite.i_number_real_pos_overflow"),
   TEST_CASE(40, "JSONTestSuite.i_number_real_underflow"),
   TEST_CASE(41, "JSONTestSuite.n_object_non_string_key_but_huge_number_instead"),
+  TEST_CASE_IF_BIGNUM(42, "valid big integer"),
+  TEST_CASE_IF_BIGNUM(43, "just big integer"),
 };
 
 int main()

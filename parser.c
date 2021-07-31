@@ -25,15 +25,15 @@ typedef enum {
 } embedjson_parser_state;
 
 #if EMBEDJSON_DEBUG
-#define EMBEDJSON_CHECK_STATE(parser) \
+#define EMBEDJSON_CHECK_STATE(parser, position) \
 do { \
   if ((parser)->state == PARSER_STATE_INVALID) { \
     return embedjson_error_ex((parser), EMBEDJSON_INTERNAL_ERROR, position); \
   } \
 } while (0)
 #else
-#define EMBEDJSON_CHECK_STATE(parser) (void) parser
-#endif
+#define EMBEDJSON_CHECK_STATE(...)
+#endif /* EMBEDJSON_DEBUG */
 
 typedef enum {
   STACK_VALUE_CURLY = 0,
@@ -44,7 +44,7 @@ typedef enum {
 #define EMBEDJSON_STACK_CAPACITY(p) (p)->stack_capacity
 #else
 #define EMBEDJSON_STACK_CAPACITY(p) sizeof((p)->stack)
-#endif
+#endif /* EMBEDJSON_DYNAMIC_STACK */
 
 /* Returns result of expression (f) if it evaluates to non-zero */
 #ifndef EMBEDJSON_RETURN_IF
@@ -55,7 +55,7 @@ do { \
     return err; \
   } \
 } while (0)
-#endif
+#endif /* EMBEDJSON_RETURN_IF */
 
 /* embedjson_zero[i] contains a byte of all bits set to one except the i-th*/
 static const unsigned char embedjson_zero[] = {
@@ -85,7 +85,7 @@ static int stack_push(embedjson_parser* parser, unsigned char value)
     EMBEDJSON_RETURN_IF(embedjson_stack_overflow(parser));
 #else
     return embedjson_error_ex(parser, EMBEDJSON_STACK_OVERFLOW, 0);
-#endif
+#endif /* EMBEDJSON_DYNAMIC_STACK */
   }
   embedjson_size_t nbucket = parser->stack_size / 8;
   embedjson_size_t nbit = parser->stack_size % 8;
@@ -107,11 +107,22 @@ static unsigned char stack_top(embedjson_parser* parser)
 {
   embedjson_size_t nbucket = (parser->stack_size - 1) / 8;
   embedjson_size_t nbit = (parser->stack_size - 1) % 8;
-  return parser->stack[nbucket] & embedjson_one[nbit];
+  return !!(parser->stack[nbucket] & embedjson_one[nbit]);
 }
 
 EMBEDJSON_STATIC int embedjson_push(embedjson_parser* parser, const char* data, embedjson_size_t size)
 {
+#if EMBEDJSON_DEBUG
+  /**
+   * We can not implement this check in compile time.
+   * If have ideas how to achieve this, feel free to share your thoughts
+   * at https://github.com/ivochkin/embedjson/issues/new
+   */
+  if ((embedjson_int_t)(-1) > 0) {
+    EMBEDJSON_LOG(parser, "EMBEDJSON_INT_T should be a signed type");
+    return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR, data);
+  }
+#endif /* EMBEDJSON_DEBUG */
   return embedjson_lexer_push(&parser->lexer, data, size);
 }
 
@@ -177,7 +188,7 @@ EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
         if (stack_empty(parser) || stack_top(parser) != STACK_VALUE_CURLY) {
           return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR, position);
         }
-#endif
+#endif /* EMBEDJSON_DEBUG */
         EMBEDJSON_RETURN_IF(embedjson_object_end(parser));
         stack_pop(parser);
         if (stack_empty(parser)) {
@@ -207,7 +218,7 @@ EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
         if (stack_empty(parser) || stack_top(parser) != STACK_VALUE_CURLY) {
           return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR, position);
         }
-#endif
+#endif /* EMBEDJSON_DEBUG */
         EMBEDJSON_RETURN_IF(embedjson_object_end(parser));
         stack_pop(parser);
         if (stack_empty(parser)) {
@@ -275,7 +286,7 @@ EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
             return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR,
                 position);
           }
-#endif
+#endif /* EMBEDJSON_DEBUG */
           EMBEDJSON_RETURN_IF(embedjson_array_end(parser));
           stack_pop(parser);
           if (stack_empty(parser)) {
@@ -352,7 +363,7 @@ EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
         if (stack_empty(parser) || stack_top(parser) != STACK_VALUE_SQUARE) {
           return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR, position);
         }
-#endif
+#endif /* EMBEDJSON_DEBUG */
         EMBEDJSON_RETURN_IF(embedjson_array_end(parser));
         stack_pop(parser);
         if (stack_empty(parser)) {
@@ -372,7 +383,7 @@ EMBEDJSON_STATIC int embedjson_token(embedjson_lexer* lexer,
     case PARSER_STATE_INVALID:
     default:
       return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR, position);
-#endif
+#endif /* EMBEDJSON_DEBUG */
   }
   return 0;
 }
@@ -381,7 +392,7 @@ EMBEDJSON_STATIC int embedjson_tokenc(embedjson_lexer* lexer, const char* data,
     embedjson_size_t size)
 {
   embedjson_parser* parser = (embedjson_parser*) lexer;
-  EMBEDJSON_CHECK_STATE(parser);
+  EMBEDJSON_CHECK_STATE(parser, data);
   return embedjson_string_chunk(parser, data, size);
 }
 
@@ -416,7 +427,7 @@ EMBEDJSON_STATIC int embedjson_tokeni(embedjson_lexer* lexer, embedjson_int_t va
     case PARSER_STATE_INVALID:
     default:
       return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR, position);
-#endif
+#endif /* EMBEDJSON_DEBUG */
   }
   return 0;
 }
@@ -452,7 +463,7 @@ EMBEDJSON_STATIC int embedjson_tokenf(embedjson_lexer* lexer, double value,
     case PARSER_STATE_INVALID:
     default:
       return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR, position);
-#endif
+#endif /* EMBEDJSON_DEBUG */
   }
   return 0;
 }
@@ -482,7 +493,7 @@ EMBEDJSON_STATIC int embedjson_tokenc_begin(embedjson_lexer* lexer,
     case PARSER_STATE_INVALID:
     default:
       return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR, position);
-#endif
+#endif /* EMBEDJSON_DEBUG */
   }
   return 0;
 }
@@ -504,9 +515,77 @@ EMBEDJSON_STATIC int embedjson_tokenc_end(embedjson_lexer* lexer,
   };
   embedjson_parser* parser = (embedjson_parser*) lexer;
   EMBEDJSON_UNUSED(position);
-  EMBEDJSON_CHECK_STATE(parser);
+  EMBEDJSON_CHECK_STATE(parser, position);
   parser->state = next_state[parser->state];
-  EMBEDJSON_CHECK_STATE(parser);
+  EMBEDJSON_CHECK_STATE(parser, position);
   return embedjson_string_end(parser);
 }
 
+#if EMBEDJSON_BIGNUM
+EMBEDJSON_STATIC int embedjson_tokenbn_begin(embedjson_lexer* lexer,
+    const char* position, embedjson_int_t initial_value)
+{
+  embedjson_parser* parser = (embedjson_parser*) lexer;
+  switch (parser->state) {
+    case PARSER_STATE_EXPECT_VALUE:
+      parser->state = PARSER_STATE_DONE;
+      return embedjson_bignum_begin(parser, initial_value);
+    case PARSER_STATE_MAYBE_OBJECT_KEY:
+      return embedjson_error_ex(parser, EMBEDJSON_EXP_OBJECT_KEY_OR_CLOSE_CURLY, position);
+    case PARSER_STATE_EXPECT_OBJECT_KEY:
+      return embedjson_error_ex(parser, EMBEDJSON_EXP_OBJECT_KEY, position);
+    case PARSER_STATE_EXPECT_COLON:
+      return embedjson_error_ex(parser, EMBEDJSON_EXP_COLON, position);
+    case PARSER_STATE_MAYBE_OBJECT_COMMA:
+      return embedjson_error_ex(parser, EMBEDJSON_EXP_COMMA_OR_CLOSE_BRACKET, position);
+    case PARSER_STATE_EXPECT_OBJECT_VALUE:
+      parser->state = PARSER_STATE_MAYBE_OBJECT_COMMA;
+      return embedjson_bignum_begin(parser, initial_value);
+    case PARSER_STATE_MAYBE_ARRAY_VALUE:
+    case PARSER_STATE_EXPECT_ARRAY_VALUE:
+      parser->state = PARSER_STATE_MAYBE_ARRAY_COMMA;
+      return embedjson_bignum_begin(parser, initial_value);
+    case PARSER_STATE_MAYBE_ARRAY_COMMA:
+      return embedjson_error_ex(parser, EMBEDJSON_EXP_COMMA_OR_CLOSE_CURLY, position);
+    case PARSER_STATE_DONE:
+      return embedjson_error_ex(parser, EMBEDJSON_EXCESSIVE_INPUT, position);
+#if EMBEDJSON_DEBUG
+    case PARSER_STATE_INVALID:
+    default:
+      return embedjson_error_ex(parser, EMBEDJSON_INTERNAL_ERROR, position);
+#endif /* EMBEDJSON_DEBUG */
+  }
+  return 0;
+}
+
+EMBEDJSON_STATIC int embedjson_tokenbn(embedjson_lexer* lexer, const char* data,
+    embedjson_size_t size)
+{
+  embedjson_parser* parser = (embedjson_parser*) lexer;
+  EMBEDJSON_CHECK_STATE(parser, data);
+  return embedjson_bignum_chunk(parser, data, size);
+}
+
+EMBEDJSON_STATIC int embedjson_tokenbn_end(embedjson_lexer* lexer,
+    const char* position)
+{
+  static const unsigned char next_state[PARSER_STATE_INVALID] = {
+    /* PARSER_STATE_EXPECT_VALUE        -> */ PARSER_STATE_DONE,
+    /* PARSER_STATE_MAYBE_OBJECT_KEY    -> */ PARSER_STATE_INVALID,
+    /* PARSER_STATE_EXPECT_OBJECT_KEY   -> */ PARSER_STATE_INVALID,
+    /* PARSER_STATE_EXPECT_COLON        -> */ PARSER_STATE_INVALID,
+    /* PARSER_STATE_MAYBE_OBJECT_COMMA  -> */ PARSER_STATE_INVALID,
+    /* PARSER_STATE_EXPECT_OBJECT_VALUE -> */ PARSER_STATE_MAYBE_OBJECT_COMMA,
+    /* PARSER_STATE_MAYBE_ARRAY_VALUE   -> */ PARSER_STATE_MAYBE_ARRAY_COMMA,
+    /* PARSER_STATE_EXPECT_ARRAY_VALUE  -> */ PARSER_STATE_MAYBE_ARRAY_COMMA,
+    /* PARSER_STATE_MAYBE_ARRAY_COMMA   -> */ PARSER_STATE_INVALID,
+    /* PARSER_STATE_DONE                -> */ PARSER_STATE_INVALID,
+  };
+  embedjson_parser* parser = (embedjson_parser*) lexer;
+  EMBEDJSON_UNUSED(position);
+  EMBEDJSON_CHECK_STATE(parser, position);
+  parser->state = next_state[parser->state];
+  EMBEDJSON_CHECK_STATE(parser, position);
+  return embedjson_bignum_end(parser);
+}
+#endif /* EMBEDJSON_BIGNUM */

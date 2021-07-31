@@ -117,6 +117,31 @@ static int embedjson_array_end(embedjson_parser* parser)
   return 0;
 }
 
+#if EMBEDJSON_BIGNUM
+static int embedjson_bignum_begin(embedjson_parser* parser,
+    embedjson_int_t initial_value)
+{
+  EMBEDJSON_UNUSED(parser);
+  EMBEDJSON_PRINTF("begin big number, initial value %lld\n", initial_value);
+  return 0;
+}
+
+static int embedjson_bignum_chunk(embedjson_parser* parser,
+    const char* data, embedjson_size_t size)
+{
+  EMBEDJSON_UNUSED(parser);
+  EMBEDJSON_PRINTF("bignum %.*s\n", (int) size, data);
+  return 0;
+}
+
+static int embedjson_bignum_end(embedjson_parser* parser)
+{
+  EMBEDJSON_UNUSED(parser);
+  EMBEDJSON_PRINTF("end bignum\n");
+  return 0;
+}
+#endif /* EMBEDJSON_BIGNUM */
+
 #if EMBEDJSON_DYNAMIC_STACK
 static int embedjson_stack_overflow(embedjson_parser* parser)
 {
@@ -129,7 +154,7 @@ static int embedjson_stack_overflow(embedjson_parser* parser)
   parser->stack_capacity = new_stack_capacity;
   return 0;
 }
-#endif
+#endif /* EMBEDJSON_DYNAMIC_STACK */
 
 int main(int argc, char* argv[])
 {

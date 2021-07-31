@@ -13,11 +13,11 @@ pushd $embedjson_root >/dev/null
 
 cat >$out/embedjson.c <<EOT
 /**
-@copyright
-
+ * @copyright
+ *
 EOT
 
-cat LICENSE >> $out/embedjson.c
+awk '/^$/{print " *"};/^.+$/{print " * "$0}' LICENSE >> $out/embedjson.c
 
 cat >> $out/embedjson.c <<EOT
  */
