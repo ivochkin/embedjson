@@ -144,7 +144,6 @@ Version 2.0.0 should be considered a first stable release.
 
 ## TODO
 - UTF-16, UTF-32 support
-- bignums (integers with values above 64 bits)
 - Integrate all tests from https://github.com/nst/JSONTestSuite into unit tests
 - 95+% test coverage
 - Ensure unicode escape does not need validation
